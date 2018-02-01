@@ -1,108 +1,80 @@
 !   Commands inserted into this file will be executed just prior to the ANSYS SOLVE command.
 !   These commands may supersede command settings set by Workbench.
 
-!   Active UNIT system in Workbench when this object was created:  Metric (mm, kg, N, s, mV, mA) with temperature units of C
+!   Active UNIT system in Workbench when this object was created:  Metric (mm, kg, N, s, mV, mA)
 !   NOTE:  Any data that requires units (such as mass) is assumed to be in the consistent solver unit system.
 !                See Solving Units in the help system for more information.
 
 
-
-
 !ИСХОДНЫЕ УСЛОВИЯ
 rr=0.000				!радиус вектор эксцентриситета
-deltr=0.000				!шаг по эксцентриситету
+deltr=0.004				!шаг по эксцентриситету
 theta=0				!угол эксцентриситета, град
-num_of_IEXC=1				!число итераций изменения эксцентриситета	
+num_of_IEXC=1				!число итераций изменения эксцентриситета
 r=32					!радиус вала
 Patm=0.1				!атмосферное давлениеи
 
 ALF=0.5				!коэффициент релаксации по давлению
-alfa=0.5
 max_iter=1				!максимальное число итераций
 deltmax=0.0005			!максимальная невязка по зазору
 popravka=0.1				!поправка на идеализированную модель
-Ndel=2					!разряжённость сетки давлений
+
 
 razmer=1				!размер конечного элемента
 dlinna=60				!длина подшипника
 
-max_ex=0.03				!максимальный эксцентриситет
 
+CLOCAL,11,cylin,0,0,0,0,0,0	!создать цилиндрическую СК с заданными эксцентриситетами
+RSYS,11			!сделать цилиндрическую СК активной
 
 !РЕШЕНИЕ
 *GET,all_element,ELEM,0,count	!число всех элементов
 *GET,all_node,NODE,0,count		!число всех узлов
 
-
-cmsel,s,mesto_pressure      	!выбор области приложения давления (верхней поверхности лепестков соприк. с газом)
-cmsel,u,line_no_force	      	!выбор области где не должно прикладываться давление
-esln				!выбор элементов связанных с выбранными узлами
-esel,r,ename,,181			!выбор только элеметнов shell181
-
-NSLE,r				!выбор узлов принадлежащих элементам
-*GET,nnnoo,NODE,0,count	!число узлов на выбранной поверхности
-*VGET,nnnooo,node,,nlist	!номера выбранных узлов 
-
- 
-*GET,num_of_element,ELEM,0,count	!число элементов на выбранной поверхности
-*VGET,number_of_elem,elem,,elist	!номера выбранных элементов
-
-
- 
 allsel,all				!сброс выбора (выбор всех элементов)
 
-cmsel,s,mesto_pressure      	!выбор области приложения давления (верхней поверхности лепестков соприк. с газом)
 
+cmsel,s,mesto_pressure          !выбор области приложения давления (верхней поверхности лепестков соприк. с газом)
+cmsel,u,line_no_force           !выбор области где не должно прикладываться давление
 
-*GET,num_of_sel,NODE,0,count	!число узлов на выбранной поверхности
+*GET,num_of_sel,NODE,0,count    !число узлов на выбранной поверхности
 
-*dim,number_of_node,array,num_of_sel	!объявление массива выбранных координат лепестка x
-*dim,coord_locx,array,num_of_sel		!объявление массива выбранных координат лепестка x
-*dim,coord_locy,array,num_of_sel		!объявление массива выбранных координат лепестка y
-*dim,coord_locz,array,num_of_sel		!объявление массива выбранных координат лепестка z
-*dim,coordxn,array,num_of_sel,2		!объявление 2мерный массив с данными узлов/координат узлов X
-*dim,coordyn,array,num_of_sel,2		!объявление 2мерный массив с данными узлов/координат узлов Y
-*dim,new_coordxn,array,num_of_sel,2	!объявление 2мерный массив с данными узлов/координат узлов X с эксцентриситетом
-*dim,coordzn,array,num_of_sel,2		!объявление 2мерный массив с данными узлов/координат узлов Z
-*dim,Smvmax,array,max_iter 		!объявление массива невязок
-*dim,zazorP,array,num_of_sel		!объявление вспомогательного массива для невязок
-*dim,num_num,array,all_element		!объявление массива номер узла/номер узла
+*dim,number_of_node,array,num_of_sel    !объявление массива выбранных координат лепестка x
+*dim,coord_locx,array,num_of_sel        !объявление массива выбранных координат лепестка x
+*dim,coord_locy,array,num_of_sel        !объявление массива выбранных координат лепестка y
+*dim,coord_locz,array,num_of_sel        !объявление массива выбранных координат лепестка z
+*dim,coordxn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов X
+*dim,coordyn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов Y
+*dim,new_coordxn,array,num_of_sel,2 !объявление 2мерный массив с данными узлов/координат узлов X с эксцентриситетом
+*dim,coordzn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов Z
+*dim,Smvmax,array,max_iter      !объявление массива невязок
+*dim,zazorP,array,num_of_sel        !объявление вспомогательного массива для невязок
+*dim,num_num,array,all_element      !объявление массива номер узла/номер узла
+*dim,after_Sharp,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов X
+
 
 !объявление массивов узлов для каждого элемент
-*dim,pol1,array,num_of_element
-*dim,pol2,array,num_of_element
-*dim,pol3,array,num_of_element
-*dim,pol4,array,num_of_element
-*dim,Press,array,num_of_element
 
-*dim,def1,array,num_of_sel		!объявление массива величин деформаций
-*dim,deform,array,num_of_sel,2		!объявление 2мерный массив с данными узлов/зазоров
-*dim,zazor,array,num_of_sel,2		!объявление 2мерный массив с данными узлов/зазоров
+*dim,Press,array,num_of_sel
+*dim,Pressure,array,num_of_sel
 
-*VGET,number_of_node,node,,nlist	!номера выбранных узлов 
+*dim,def1,array,num_of_sel      !объявление массива величин деформаций
+*dim,deform,array,num_of_sel,2      !объявление 2мерный массив с данными узлов/зазоров
+*dim,zazor,array,num_of_sel,2       !объявление 2мерный массив с данными узлов/зазоров
 
-!Массивы невязок
-*dim,imax,array,max_iter
-*dim,coordxX,array,max_iter
-*dim,coordyY,array,max_iter
-*dim,coordzZ,array,max_iter
-*dim,Ppp,array,max_iter
-*dim,zaZZ,array,max_iter
-
-!Массив 
-*dim,qwe,array,num_of_sel	
-
-*dim,nevyaz,array,num_of_IEXC,max_iter
-
-CLOCAL,11,cylin,0,0,0,0,0,0	!создать цилиндрическую СК с заданными эксцентриситетами
-RSYS,11			!сделать цилиндрическую СК активной
+*VGET,number_of_node,node,,nlist	!Создание массива номеров выбранных узлов
 
 !получение координат лепестка X для определённых узлов
 *do,i,1,num_of_sel
 	*get,coord_locx(i),node,number_of_node(i),loc,x
 *enddo
 
-!получение координат Y лепестка для определённых узлов 
+!получение координат лепестка Z для определённых узлов
+*do,i,1,num_of_sel
+	*get,coord_locz(i),node,number_of_node(i),loc,z
+*enddo
+
+!получение координат Y лепестка для определённых узлов
 *do,i,1,num_of_sel
 	*get,coord_locy(i),node,number_of_node(i),loc,y
 		!перевод шкалы градусов из системы -180/180 в систему 0-360
@@ -113,10 +85,7 @@ RSYS,11			!сделать цилиндрическую СК активной
 		*endif
 *enddo
 
-!получение координат лепестка Z для определённых узлов
-*do,i,1,num_of_sel
-	*get,coord_locz(i),node,number_of_node(i),loc,z
-*enddo
+
 
 !Создание 2 мерного массива номер узла/координатаX
 *do,i,1,num_of_sel
@@ -142,9 +111,9 @@ cmsel,s,name_of_number      	!выбор торцевых рёбер лепес�
 cmsel,u,line_no_force	      	!выбор области где не должно прикладываться давление (нижние элементы стыков)
 nsle,r					!выбор всех узлов из предыдущих именных наборов
 *VGET,one_line_number,node,,nlist	!номера выбранных узлов
-*GET,num_of_line,NODE,0,count	!число узлов на выбранной поверхности
+*GET,num_of_line,NODE,0,count	!число узлов на выбранной линии
 *dim,coord_locy_line,array,num_of_line	!объявление массива числа узлов по окружности
-!получение координат Y лепестка для определённых узлов 
+!получение координат Y лепестка для определённых узлов
 *do,i,1,num_of_line
 	*get,coord_locy_line(i),node,one_line_number(i),loc,y
 		!перевод шкалы градусов из системы -180/180 в систему 0-360
@@ -154,8 +123,6 @@ nsle,r					!выбор всех узлов из предыдущих именн�
 		coord_locy_line(i)=coord_locy_line(i)
 		*endif
 *enddo
-*VFUN,one_line_vozr,asort,coord_locy_line	  !упорядочивание массива значении координат y узлов по возрастанию
-
 !Создание 2 мерного массива номер узла/координатаY
 *dim,coordyn1,array,num_of_line,2		!объявление 2мерный массив с данными узлов/координат узлов Y
 *do,i,1,num_of_line
@@ -163,18 +130,17 @@ nsle,r					!выбор всех узлов из предыдущих именн�
 	coordyn1(i,2)=coord_locy_line(i)
 *enddo
 
-!*VFUN,one_line_vozr,asort,coordyn1(1,2)	!упорядочивание массива значении координат y узлов по возрастанию
-
+*VFUN,one_line_vozr,asort,coordyn1(1,2)	!упорядочивание массива значении координат y узлов по возрастанию
 
 !Вычисление локального номера узла по одной окружности
-max_iter_z=nint(dlinna/razmer)+1			!максимальное число элементов по длине	
+max_iter_z=nint(dlinna/razmer)+1			!максимальное число элементов по длине
 max_iter_y=num_of_line				!общее число элементов по окружности
 delta_y=360/max_iter_y				!шаг между соседними узлами в одной окружности
 
 
 *dim,mass_y,array,max_iter_y,max_iter_z,	!инициализация массива координата z/номер элемента по окружности
 
-!Вычисление массива элементы по z -> угол элемента	
+!Вычисление массива элементы по z -> угол элемента
 *do,i,1,num_of_sel
 	 nz=nint(coordzn(i,2)/razmer)	!номер элемента по оси z
        !цикл по выбора номера элемента по окружности
@@ -184,14 +150,22 @@ delta_y=360/max_iter_y				!шаг между соседними узлами в 
 		*endif
 	*enddo
         mass_y(iy,nz+1)=i			!массив номер по z, номер по углу, номер элемента
-*enddo 
+*enddo
 
 *do,i,1,num_of_sel
 	num_num(number_of_node(i))=i
 *enddo
-	
+
 allsel,all
 
+
+!Создание 2 мерного массива номер узла/координата X с эксцентриситетом
+*do,i,1,num_of_sel
+	new_coordxn(i,1)=number_of_node(i)
+!	new_coordxn(i,2)=sqrt(r**2-rr*sin(coord_locy(i)+theta)**2)+rr*cos(coord_locy(i)+theta)
+	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
+*enddo
+allsel,all
 
 /prep7
 csys,1
@@ -210,7 +184,7 @@ exel(21)=84,89,93,97,101,105,109,113,117,121
 exel(31)=125,129,134,139,143,147,151,155,159,163
 exel(41)=167,171,175,179,184,189,193,197
 
-разворот системы координат узлов в локальную СК
+!разворот системы координат узлов в локальную СК
 nrotat,all
 
 
@@ -236,39 +210,9 @@ nrotat,all
 pribavka(1)=deltr*2
 
 
-nx=max_iter_y !число узлов по оси ox перенесено в начало
-nz=max_iter_z !число узлов по оси оz
-
-
-
-
-*dim,PXZ,array,nx,nz !инициация массива давлений
-!инициация массива давлений и начальных зазоров 
-*do,i,1,nx
-*do,j,1,nz
-PXZ(i,j)=Patm
-*enddo
-*enddo
-
-!Инициализация начального давления
-*do,i,1,num_of_element
- Press(i)=0.0000001
-*enddo
-
-
-
 !ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
 *do,M,1,num_of_IEXC
-*if,M,NE,1,then
-	*if,deltr,GT,0.2*mmin_zazor,then
-	rr=rr+0.2*mmin_zazor
-	*else
-	rr=rr+deltr
-	*endif
-*else
 rr=rr+deltr
-*endif
-
 
 !Создание 2 мерного массива номер узла/координата X с эксцентриситетом
 *do,i,1,num_of_sel
@@ -277,16 +221,34 @@ rr=rr+deltr
 	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
 *enddo
 
+!инициализация массива давлений
+*dim,p,array,num_of_sel,2			!объявление 2мерный массив с данными узлов/зазоров
+
+
+
+
+!ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
+*do,M,1,num_of_IEXC
+rr=rr+deltr
+
+!Создание 2 мерного массива номер узла/координата X с эксцентриситетом
+*do,i,1,num_of_sel
+	new_coordxn(i,1)=number_of_node(i)
+!	new_coordxn(i,2)=sqrt(r**2-rr*sin(coord_locy(i)+theta)**2)+rr*cos(coord_locy(i)+theta)
+	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
+*enddo
+
+!инициализация массива давлений
+*dim,p,array,num_of_sel,2			!объявление 2мерный массив с данными узлов/зазоров
+
 !ЦИКЛ ПО ИЗМЕНЕНИЮ ДАВЛЕНИЯ
 *do,k,1,max_iter
-		
 allsel,all
 /solu
 
-
-!приложение давления к выбранным узлам в повёрнутой СК
+!приложение силы к выбранным узлам в повёрнутой СК
 *do,i,1,num_of_element
-	SFE,number_of_elem(i),,Pres,1,Press(i)
+    SFE,number_of_elem(i),,Pres,1,Press(i)
 *enddo
 
 allsel,all
@@ -308,669 +270,24 @@ RSYS,11					!сделать цилиндрическую СК активной
 	deform(i,2)=def1(i)
 *enddo
 
+!*cfopen,'D:\bearing\BBEEAARRIINNGG\Number_node_coord1',txt
+!*vwrite,coordxn(1,1),coordxn(1,2),coordyn(1,2),coordzn(1,2),deform(1,2)
+!(' 'F15.0,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
+!*cfclos
 
-!Минимальный зазор
+!/sys, D:\bearing\BBEEAARRIINNGG\Charp_mesh_apdl.exe
 
-*dim,min_zaz,array,max_iter
-*dim,min_zaz_i,array,max_iter
-*dim,min_zaz_coordxX,array,max_iter
-*dim,min_zaz_coordyY,array,max_iter
-*dim,min_zaz_coordzZ,array,max_iter
-*dim,min_zaz_Ppp,array,max_iter
-*dim,minimum_zazor,array,num_of_IEXC,max_iter
+*vread,Pressure,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
+(' 'F13.10,)
 
+*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
+*vwrite,Pressure(1,1)
+(' 'F13.10,)
+*cfclos
 
-!Инициализация максимальной невязки
-Smvmax(k)=0				
-min_zaz(k)=10
 
-!Создание 2 мерного массива номер узла/зазор
-*do,i,1,num_of_sel
-	zazor(i,1)=number_of_node(i)
-	zazor(i,2)=coord_locx(i)+def1(i)-new_coordxn(i,2)-popravka
-	!сходимость
-	*if,k,GT,1,then
-	sum=abs(zazorP(i)-zazor(i,2))
-		*if,Smvmax(k),LT,sum,then
-		Smvmax(k)=sum
-		imax(k)=i
-		coordxX(k)=coordxn(imax(k),2)
-		coordyY(k)=coordyn(imax(k),2)
-		coordzZ(k)=coordzn(imax(k),2)
-		Ppp(k)=P(imax(k),2)
-		zaZZ(k)=zazor(imax(k),2)
-		*endif
+*enddo !Давление
+*enddo !Эксцентриситет
 
-		*if,zazor(i,2),LT,min_zaz(k),then
-		min_zaz(k)=zazor(i,2)
-		min_zaz_i(k)=i
-		min_zaz_coordxX(k)=coordxn(min_zaz_i(k),2)
-		min_zaz_coordyY(k)=coordyn(min_zaz_i(k),2)
-		min_zaz_coordzZ(k)=coordzn(min_zaz_i(k),2)
-		min_zaz_Ppp(k)=P(min_zaz_i(k),2)
-		*endif
-	*endif
-zazorP(i)=zazor(i,2)
-*enddo
-mmin_zazor=min_zaz(max_iter)
 
-nevyaz(m,k)=Smvmax(k)
-minimum_zazor(m,k)=min_zaz(k)
 
-!Вывод в листинг невязок
-!*status,Smvmax
-!*status,coordxX
-!*status,coordyY
-!*status,coordzZ
-!*status,Ppp
-!*status,zaZZ
-*status,nevyaz
-*status,minimum_zazor
-*status,min_zaz
-*status,min_zaz_coordxX
-*status,min_zaz_coordyY
-*status,min_zaz_coordzZ
-*status,min_zaz_Ppp
-
-
-Px=0
-Py=0
-
-!Вычисление и создание 2 мерного массива номер узла/сила
-!*do,i,1,num_of_sel
-!	P(i,1)=number_of_node(i)
-!	PN=0.1*(0.01/zazor(i,2))**2
-!	P(i,2)=PN*ALF+(1-ALF)*P(i,2)		!новая сила с учётом коэффициента релаксации
-!	Px=Px+P(i,2)*cos(coordyn(i,2)*3.14/180)
-!	Py=Py+P(i,2)*sin(coordyn(i,2)*3.14/180)
-!
-!*enddo
-!*status,Px
-!*status,Py
-
-!Присвоение локальным индекса массива узлов глобальных номеров узлов 
-*do,i,1,num_of_sel
-	num_num(number_of_node(i))=i
-*enddo
-
-!присвоение индексам массива зазоров индексов OX OZ
-*dim,zazor_mass,array,max_iter_y,max_iter_z
-*do,a,1,max_iter_y
-	*do,b,1,max_iter_z
-		zazor_mass(a,b)=zazor(mass_y(a,b),2)
-	*enddo
-*enddo
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-NUL1=100 !???
-NITER=100 !?????
-Ngaz=200 !?????
-Pi=3.14159
-NSpringMax=120 !??????
-
-
-Pa=Patm*10**6 !атмосферное давление (1 атм)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!Pa = 100000
-Omega=3000 !частота вращения
-Shaft=r/1000 !радиус вала	!!!!!!!!!!!!!!!!!!!!!
-!Shaft = 0.02
-Hmid=0.00001 !характеристика зазора (почему именно такая??)
-Myu=0.0000183 !вязкость
-Cz=120 !константа Сатерленда
-TA=300 !температура в смазочном слое подшипника
-BLep=dlinna/1000 !ширина подшипника
-!BLep = 0.5*Shaft
-
-Myu0 = Myu*(273+Cz)/((TA)+Cz)*((TA)/273)**1.5 !вязкость с поправкой на температуру
-dx = delta_y*Ndel !угловой шаг узлов в подшипнике
-lamb=6*Myu0*Omega*Shaft**2/Pa/Hmid/Hmid !???
-OmegaK = 100 !! что это ячем отличается от омеги
-SIGMA=12*Myu*OmegaK*Shaft**2/Pa/Hmid/Hmid
-!SIGMA = 12*Myu*Shaft**2*OmegaK/Pa/Hmid/Hmid
-DZ = (BLep/Shaft/(nz-1))*Ndel !относительный шаг элементов по оси z
-dtau = 1/(2*1*(1/(dx)**2+1/DZ**2))/10/2/2
-!dtau = 1/(2*1*(1/(dx)**2+1/DZ**2))/20
-!dtau = 1/(2*1*(1/(dx)**2+1/DZ**2))
-
-*dim,H,array,nx,nz !инициация исходных относительных зазоров
-*dim,H3p,array,nx,nz !инициация чего-то
-*dim,H3m,array,nx,nz !инициация чего-то
-
-
-
-!!***********************************************************************************************************
-
-!Z = 6
-!fi1 = 0.5
-!H1H2 = 3
-!Hmin = 0.000002
-!Cz = 120 
-!TA = 300
-!dx = 2*Pi/(nx-1)/Z
-!FiL = 2*Pi/Z
-!FL1 = FiL*fi1
-
-
-!ht=Hmin/Hmid
-
-
-!*do,I,1,nx
-!	fi=dx*(I-1)
-!	fip=FL1-fi
-!		*If,fi,GE,FL1,Then
-!			ht=Hmin/Hmid
-!		*endif
-!		*If,I,EQ,nx,Then
-!			ht=ht*1.5
-!		*else,ht=(Hmin+Hmin*(H1H2-1)*((fip)/FL1)**2)/Hmid
-!		*endif
-!	*do,j,1,nz
-!	PXZ(I,j)=1
-!	H(I,j)=ht
-!	*enddo
-!*enddo
-!!**********************************************************************************************************
- 
-PXZ2=0
-PXZ3=0
-
-!инициация массива начальных зазоров 
-*do,i,1,nx
-*do,j,1,nz
-H(i,j)=(zazor_mass(i,j)/1000)/Hmid
-*enddo
-*enddo
-
-*dim,Z3p,array,nx,nz
-*dim,B3p,array,nx,nz
-*dim,V3p,array,nx,nz
-*dim,C3p,array,nx,nz
-
-ipp=0
-imm=0
-
-Nit1 = 1 !число итераций
-*do,it,1,Nit1
-	
-Nva=1
-icalc=-1
-
-!первый лепесток
-*do,I1,nx/8+1,3*nx/8-1,2 !условия открытого по оси подшипника
-I=I1
-im1=I-2
-ip1=I+2
-*if,I,eq,nx/8+1,then,
-	im1=nx/8+1
-*endif
-*if,I,eq,3*nx/8-1,then,
-	ip1=3*nx/8-1
-*endif
-	
-	*do,j,2,nz-1,2
-	ipj=j+2
-	imj=j-2
-	*if,j,eq,2,then,
-		imj=2
-	*endif
-	*if,j,eq,nz-1,then,
-		ipj=nz-1
-	*endif
-	
-	H3p(I,j)=((H(I,j)+H(ip1,j))/2)**3
-	H3m(I,j)=((H(I,j)+H(im1,j))/2)**3 
-
-	Uxp1=H3p(I,j)*(PXZ(ip1,j)+PXZ(I,j))/2*(PXZ(ip1,j)-PXZ(I,j))/dx
-	u1=Uxp1
-	Uxp1=Uxp1-lamb*(PXZ(ip1,j)+PXZ(I,j))/2*(H(ip1,j)+H(I,j))/2
-	u2=Uxp1
-	Uxm1=H3m(I,j)*(PXZ(im1,j)+PXZ(I,j))/2*(-PXZ(im1,j)+PXZ(I,j))/dx 
-	u3=Uxm1
-	Uxm1=Uxm1-lamb*(PXZ(im1,j)+PXZ(I,j))/2*(H(im1,j)+H(I,j))/2
-	u4=Uxm1
-	Uzp1=((H(I,ipj)+H(I,j))/2)**3*(PXZ(I,ipj)+PXZ(I,j))/2*(PXZ(I,ipj)-PXZ(I,j))/(DZ)
-	u5=Uzp1
-	Uzm1=((H(I,imj)+H(I,j))/2)**3*(PXZ(I,imj)+PXZ(I,j))/2*(-PXZ(I,imj)+PXZ(I,j))/(DZ)
-	u6=Uzp1
-	DelU=(Uxp1-Uxm1)/dx+(Uzp1-Uzm1)/(DZ)
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-	PN=1/H(I,j)*(DelU*dtau/SIGMA+H(I,j)*PXZ(I,j)) !PN
-	*if,abs(PXZ(i,j)-PN)/PXZ(i,j),GT,0.1,then,
-	*exit
-	*status,PXZ
-	*endif
-	PXZ(I,j)=alf*PN+(1-alf)*PXZ(I,j) !0
-
-!*If,I1,EQ,nx-1,then
-!*if,(PXZ(I-3,j)-PXZ(I-2,j))*(PXZ(I-2,j)-PXZ(I-1,j)),GT,0,then
-!PXZ(I,j)=PXZ(I+1,j)+(PXZ(I-1,j)-PXZ(I+1,j))*0.95
-!*endif
-!*endif
-
-!*If,PXZ(I,j),GT,20,then,
-!*exit
-!*endif
-
-
-Z3p(I,j)=H(I,j)
-*enddo !j
-*enddo !I1
-
-!второй лепесток
-*do,I1,3*nx/8+1,5*nx/8-1,2 !условия открытого по оси подшипника
-I=I1
-im1=I-2
-ip1=I+2
-*if,I,eq,3*nx/8+1,then,
-	im1=3*nx/8+1
-*endif
-*if,I,eq,5*nx/8-1,then,
-	ip1=5*nx/8-1
-*endif
-	
-	*do,j,2,nz-1,2
-	ipj=j+2
-	imj=j-2
-	*if,j,eq,2,then,
-		imj=2
-	*endif
-	*if,j,eq,nz-1,then,
-		ipj=nz-1
-	*endif
-	
-	H3p(I,j)=((H(I,j)+H(ip1,j))/2)**3
-	H3m(I,j)=((H(I,j)+H(im1,j))/2)**3 
-
-	Uxp1=H3p(I,j)*(PXZ(ip1,j)+PXZ(I,j))/2*(PXZ(ip1,j)-PXZ(I,j))/dx
-	u1=Uxp1
-	Uxp1=Uxp1-lamb*(PXZ(ip1,j)+PXZ(I,j))/2*(H(ip1,j)+H(I,j))/2
-	u2=Uxp1
-	Uxm1=H3m(I,j)*(PXZ(im1,j)+PXZ(I,j))/2*(-PXZ(im1,j)+PXZ(I,j))/dx 
-	u3=Uxm1
-	Uxm1=Uxm1-lamb*(PXZ(im1,j)+PXZ(I,j))/2*(H(im1,j)+H(I,j))/2
-	u4=Uxm1
-	Uzp1=((H(I,ipj)+H(I,j))/2)**3*(PXZ(I,ipj)+PXZ(I,j))/2*(PXZ(I,ipj)-PXZ(I,j))/(DZ)
-	u5=Uzp1
-	Uzm1=((H(I,imj)+H(I,j))/2)**3*(PXZ(I,imj)+PXZ(I,j))/2*(-PXZ(I,imj)+PXZ(I,j))/(DZ)
-	u6=Uzp1
-	DelU=(Uxp1-Uxm1)/dx+(Uzp1-Uzm1)/(DZ)
-
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-	PN=1/H(I,j)*(DelU*dtau/SIGMA+H(I,j)*PXZ(I,j)) !PN
-	PXZ(I,j)=alf*PN+(1-alf)*PXZ(I,j) !0
-
-!*If,I1,EQ,nx-1,then
-!*if,(PXZ(I-3,j)-PXZ(I-2,j))*(PXZ(I-2,j)-PXZ(I-1,j)),GT,0,then
-!PXZ(I,j)=PXZ(I+1,j)+(PXZ(I-1,j)-PXZ(I+1,j))*0.95
-!*endif
-!*endif
-
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-B3p(I,j)=H(i,j)
-*enddo !j
-
-*enddo !I1
-
- 
-!третий лепесток
-*do,I1,5*nx/8+1,7*nx/8-1,2 !условия открытого по оси подшипника
-I=I1
-im1=I-2
-ip1=I+2
-*if,I,eq,5*nx/8+1,then,
-	im1=5*nx/8+1
-*endif
-*if,I,eq,7*nx/8-1,then,
-	ip1=7*nx/8-1
-*endif
-
-	*do,j,2,nz-1,2
-	ipj=j+2
-	imj=j-2
-	*if,j,eq,2,then,
-		imj=2
-	*endif
-	*if,j,eq,nz-1,then
-		ipj=nz-1
-	*endif
-
-	H3p(I,j)=((H(I,j)+H(ip1,j))/2)**3
-	H3m(I,j)=((H(I,j)+H(im1,j))/2)**3 
-
-	Uxp1=H3p(I,j)*(PXZ(ip1,j)+PXZ(I,j))/2*(PXZ(ip1,j)-PXZ(I,j))/dx
-	u1=Uxp1
-	Uxp1=Uxp1-lamb*(PXZ(ip1,j)+PXZ(I,j))/2*(H(ip1,j)+H(I,j))/2
-	u2=Uxp1
-	Uxm1=H3m(I,j)*(PXZ(im1,j)+PXZ(I,j))/2*(-PXZ(im1,j)+PXZ(I,j))/dx 
-	u3=Uxm1
-	Uxm1=Uxm1-lamb*(PXZ(im1,j)+PXZ(I,j))/2*(H(im1,j)+H(I,j))/2
-	u4=Uxm1
-	Uzp1=((H(I,ipj)+H(I,j))/2)**3*(PXZ(I,ipj)+PXZ(I,j))/2*(PXZ(I,ipj)-PXZ(I,j))/(DZ)
-	u5=Uzp1
-	Uzm1=((H(I,imj)+H(I,j))/2)**3*(PXZ(I,imj)+PXZ(I,j))/2*(-PXZ(I,imj)+PXZ(I,j))/(DZ)
-	u6=Uzp1
-	DelU=(Uxp1-Uxm1)/dx+(Uzp1-Uzm1)/(DZ)
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-	PN=1/H(I,j)*(DelU*dtau/SIGMA+H(I,j)*PXZ(I,j)) !PN
-	PXZ(I,j)=alf*PN+(1-alf)*PXZ(I,j) !0
-
-!*If,I1,EQ,nx-1,then
-!*if,(PXZ(I-3,j)-PXZ(I-2,j))*(PXZ(I-2,j)-PXZ(I-1,j)),GT,0,then
-!PXZ(I,j)=PXZ(I+1,j)+(PXZ(I-1,j)-PXZ(I+1,j))*0.95
-!*endif
-!*endif
-
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-V3p(I,j)=H(i,j)
-*enddo !j
-
-*enddo !I1
-
-!четвёртый лепесток
-*do,I1,7*nx/8+1,nx+nx/8-1,2 !условия открытого по оси подшипника
-I=I1
-*if,I1,GT,nx,then,
-I=I1-nx
-*endif
-im1=I-2
-ip1=I+2
-*if,I,EQ,nx,then,
-ip1=2
-*endif
-*if,I,EQ,2,then,
-im1=nx
-*endif
-*if,i,eq,7*nx/8+1,then,
-	im1=7*nx/8+1
-*endif
-*if,i,eq,nx/8-1,then,
-	ip1=nx/8-1
-*endif
-
-*do,j,2,nz-1,2
-	ipj=j+2
-	imj=j-2
-	*if,j,eq,2,then,
-		imj=2
-	*endif
-	*if,j,eq,nz-1,then
-		ipj=nz-1
-	*endif
-
-	H3p(I,j)=((H(I,j)+H(ip1,j))/2)**3
-	H3m(I,j)=((H(I,j)+H(im1,j))/2)**3 
-	
-	Uxp1=H3p(I,j)*(PXZ(ip1,j)+PXZ(I,j))/2*(PXZ(ip1,j)-PXZ(I,j))/dx
-	u1=Uxp1
-	Uxp1=Uxp1-lamb*(PXZ(ip1,j)+PXZ(I,j))/2*(H(ip1,j)+H(I,j))/2
-	u2=Uxp1
-	Uxm1=H3m(I,j)*(PXZ(im1,j)+PXZ(I,j))/2*(-PXZ(im1,j)+PXZ(I,j))/dx 
-	u3=Uxm1
-	Uxm1=Uxm1-lamb*(PXZ(im1,j)+PXZ(I,j))/2*(H(im1,j)+H(I,j))/2
-	u4=Uxm1
-	Uzp1=((H(I,ipj)+H(I,j))/2)**3*(PXZ(I,ipj)+PXZ(I,j))/2*(PXZ(I,ipj)-PXZ(I,j))/(DZ)
-	u5=Uzp1
-	Uzm1=((H(I,imj)+H(I,j))/2)**3*(PXZ(I,imj)+PXZ(I,j))/2*(-PXZ(I,imj)+PXZ(I,j))/(DZ)
-	u6=Uzp1
-	DelU=(Uxp1-Uxm1)/dx+(Uzp1-Uzm1)/(DZ)
-
-
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-PN=1/H(I,j)*(DelU*dtau/SIGMA+H(I,j)*PXZ(I,j)) !PN
-PXZ(I,j)=alf*PN+(1-alf)*PXZ(I,j) !0
-
-!*If,I1,EQ,nx-1,then
-!*if,(PXZ(I-3,j)-PXZ(I-2,j))*(PXZ(I-2,j)-PXZ(I-1,j)),GT,0,then
-!PXZ(I,j)=PXZ(I+1,j)+(PXZ(I-1,j)-PXZ(I+1,j))*0.95
-!*endif
-!*endif
-
-
-!*If,PXZ(I,j),GT,20,then
-!*exit
-!*endif
-
-C3p(I,j)=H(i,j)
-*enddo !j
-
-*enddo !I1
-
-*if,mod(it,100),EQ,0,then,
-	*do,i,1,nx
-		*do,j,1,nz
-		PXZ3=PXZ3+abs(PXZ(i,j)-Patm)
-		*enddo
-	*enddo
-*status,PXZ3
-*endif
-
-*enddo !it1
-
-!************************************************************
-!!!!!!!! сбор давлений в один массив
-!!первый лепесток
-*do,I1,nx/4-nx/8+2,3*nx/8-2,2 
-I = I1
-*do,j,2,nz-1,2
-PXZ(I,j)=(PXZ(i-1,j)+PXZ(i+1,j))/2
-*enddo
-*enddo
-
-*do,I1,nx/4-nx/8+1,3*nx/8-1 
-I = I1
-*do,j,3,nz-2,2
-PXZ(I,j)=(PXZ(i,j-1)+PXZ(i,j+1))/2
-*enddo
-*enddo
-
-!!второй лепесток
-*do,I1,3*nx/8+2,5*nx/8-2,2 
-I=I1
-*do,j,2,nz-1,2
-PXZ(I,j)=(PXZ(i-1,j)+PXZ(i+1,j))/2
-*enddo
-*enddo
-
-*do,I1,3*nx/8+1,5*nx/8-1 
-I=I1
-*do,j,3,nz-2,2
-PXZ(I,j)=(PXZ(i,j-1)+PXZ(i,j+1))/2
-*enddo
-*enddo
-
- 
-
-!!третий лепесток
-*do,I1,5*nx/8+2,7*nx/8-2,2
-I=I1
-*do,j,2,nz-1,2
-PXZ(I,j)=(PXZ(i-1,j)+PXZ(i+1,j))/2
-*enddo
-*enddo
-
-*do,I1,5*nx/8+2,6*nx/8-1
-I = I1
-*do,j,3,nz-2,2
-PXZ(I,j)=(PXZ(i,j-1)+PXZ(i,j+1))/2
-*enddo
-*enddo
-
-!!четвёртый лепесток
-*do,I1,7*nx/8+2,nx+nx/8-2,2
-I=I1
-*if,I1,GT,nx,then,
-I=I1-nx
-*endif
-im1 = I - 1
-ip1 = I + 1
-*if,I1,GT,nx,then,
-I=I1-nx
-*endif
-*if,I,EQ,nx,then
-ip1=1
-*endif
-*if,I,EQ,1,then
-im1=nx
-*endif
-*do,j,2,nz-1,2
-PXZ(I,j)=(PXZ(im1,j)+PXZ(ip1,j))/2
-*enddo
-*enddo
-
-*do,I1,7*nx/8+3,nx+nx/8-1
-I=I1
-*if,I1,GT,nx,then,
-I=I1-nx
-*endif
-
-!*do,j,3,nz-2,2
-!PXZ(I,j)=(PXZ(i,j-1)+PXZ(i,j+1))/2
-!*enddo
-!*enddo
-
-
- 	*do,i,1,nx
-		*do,j,1,nz
-		PXZ2=PXZ2+abs(PXZ(i,j)-Patm)
-		*enddo
-	*enddo
-
- 
- 
-
-*dim,P,array,num_of_sel,2
-*dim,PP,array,nx,nz
-
-	*do,i,1,nx
-		*do,j,1,nz
-		PP(i,j)=PXZ(i,j)
-		*enddo
-	*enddo
-
-	*do,a,1,max_iter_y
-		*do,b,1,max_iter_z
-		P(mass_y(a,b),2)=PP(a,b)
-		*enddo
-	*enddo
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-!Вычисление номеров узлов для элемента и расчёт давления для элемента
-*do,i,1,num_of_element
-	*get,pol1(i),elem,number_of_elem(i),node,	1
-	*get,pol2(i),elem,number_of_elem(i),node,	2
-	*get,pol3(i),elem,number_of_elem(i),node,	3
-	*get,pol4(i),elem,number_of_elem(i),node,	4
-	Press(i)=(P(num_num(pol1(i)),2)+P(num_num(pol2(i)),2)+P(num_num(pol3(i)),2)+P(num_num(pol4(i)),2))/4
-*enddo
-
-!запишем параметры зазора в зависимости от z и y
-!*do,i,1,num_of_sel
-!	 q=nint(coordzn(i,2)/razmer)	!номер элемента по оси z
-!        iy=nint(coordyn(i,2)/1.8)		!номер элемента по углу подшипника
-!       mass_y(q+1,iy+1)=i			!массив номер по z, номер по углу, номер элемента
-!*enddo 
-
-
-!!!!!!!!!!!!!
-!zazor(i,2)=coord_locx(i)+def1(i)-new_coordxn(i,2)-popravka
-
-
-*dim,coordxn_mass,array,max_iter_y,max_iter_z
-*do,a,1,max_iter_y
-	*do,b,1,max_iter_z
-		coordxn_mass(a,b)=coordxn(mass_y(a,b),2)-32
-	*enddo
-*enddo
-
-
-*dim,deform_mass,array,max_iter_y,max_iter_z
-*do,a,1,max_iter_y
-	*do,b,1,max_iter_z
-		deform_mass(a,b)=deform(mass_y(a,b),2)
-	*enddo
-*enddo
-
-
-*dim,new_coordxn_mass,array,max_iter_y,max_iter_z
-*do,a,1,max_iter_y
-	*do,b,1,max_iter_z
-		new_coordxn_mass(a,b)=new_coordxn(mass_y(a,b),2)-32
-	*enddo
-*enddo
-
-*dim,pressure_mass,array,max_iter_y,max_iter_z
-*do,a,1,max_iter_y
-	*do,b,1,max_iter_z
-		pressure_mass(a,b)=P(mass_y(a,b),2)
-	*enddo
-*enddo
-
-
-
-!!!!!!!!!!!!!!!
-
-!Выход из цикла по невязке
-!*if,Smvmax(k),LT,deltmax,then
-!	*exit
-!*endif
-
-!Запись результатов в файл
-!*cfopen,'C:\Matushkin\Learn',txt
-!*vwrite,SEQU,zazor(1,2),new_coordxn(1,2),Press(1),num_num(1)
-!(F6.0,' ',F8.4,' ',F8.4,' ',F8.6,' ',F8.4,)
-
-*cfopen,'D:\bearing\BBEEAARRIINNGG\Learn3_1',txt
-*vwrite,SEQU,mass_y(1,1),mass_y(1,2),zazor_mass(1,30),coordxn_mass(1,30),deform_mass(1,30),new_coordxn_mass(1,30),pressure_mass(1,30),PXZ(1,30),PXZ(20,1),coord_locx
-(F6.0,' 'F8.2,' 'F8.2,' ',G10.4,' ',G10.4,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
-
-*cfopen,'D:\bearing\BBEEAARRIINNGG\Learn4_1',txt
-*vwrite,SEQU,Z3p(1,30),B3p(1,30),V3p(1,30),C3p(1,30)
-(F6.0,' 'G10.4,' ',G10.4,' ',G10.4,' 'G10.4,)
-
-*cfopen,'D:\bearing\BBEEAARRIINNGG\Learn5_1',txt
-*vwrite,SEQU,zazor_mass(1,30),pressure_mass(1,30)
-(F6.0,' 'F10.8,' 'F10.6,)
-
-
-*enddo
-!pribavka(M)=ZaZZ(max_iter)
-!rr=rr+pribavka(M)/2
-my_arg1=k
-*enddo
-*status,rr
-*enddo
-my_arg2=m
-!*status,PXZ
-!*status,M
-!*status,zazor_mass
-*status,coordxn_mass
