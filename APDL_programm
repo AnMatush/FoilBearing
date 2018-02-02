@@ -8,14 +8,14 @@
 
 !ИСХОДНЫЕ УСЛОВИЯ
 rr=0.000				!радиус вектор эксцентриситета
-deltr=0.004				!шаг по эксцентриситету
+deltr=0.0002				!шаг по эксцентриситету
 theta=0				!угол эксцентриситета, град
-num_of_IEXC=5				!число итераций изменения эксцентриситета
+num_of_IEXC=10			!число итераций изменения эксцентриситета
 r=32					!радиус вала
 Patm=0.1				!атмосферное давлениеи
 
 ALF=0.5				!коэффициент релаксации по давлению
-max_iter=5				!максимальное число итераций
+max_iter=1				!максимальное число итераций
 deltmax=0.0005			!максимальная невязка по зазору
 popravka=0.1				!поправка на идеализированную модель
 
@@ -198,7 +198,7 @@ allsel,all
 
 !приложение силы к выбранным узлам в повёрнутой СК
 *do,i,1,num_of_sel
-    F,coord_loc(i,4),FX,Force(i)*1000
+    F,coord_loc(i,4),FX,Force(i)
 *enddo
 
 allsel,all
@@ -222,22 +222,27 @@ RSYS,11					!сделать цилиндрическую СК активной
 
 *cfopen,'D:\bearing\BBEEAARRIINNGG\Number_node_coord1',txt
 *vwrite,Coord_loc(1,4),Coord_loc(1,1),Coord_loc(1,2),Coord_loc(1,3),deform(1,2)
-(' 'F15.0,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
+(' 'F15.0,' 'E10.5,' 'E10.5,' 'E10.5,' 'E10.5,)
 *cfclos
 
 /sys, D:\bearing\BBEEAARRIINNGG\Charp_mesh_apdl.exe
 
 *vread,Force,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
 (' 'F13.10,)
-
-*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
-*vwrite,Force(1,1)
-(' 'F13.10,)
 *cfclos
 
+!*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
+!*vwrite,Force(1,1)
+!(' 'F13.10,)
+!*cfclos
 
+set,last
+/show,png
+/view,1,1,1,1
+gplot
 *enddo !Давление
 *enddo !Эксцентриситет
+set,last					!выбор данных последнего шага нагружения
 
 
 
