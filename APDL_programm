@@ -10,7 +10,7 @@
 rr=0.000				!радиус вектор эксцентриситета
 deltr=0.004				!шаг по эксцентриситету
 theta=0				!угол эксцентриситета, град
-num_of_IEXC=1				!число итераций изменения эксцентриситета
+num_of_IEXC=2				!число итераций изменения эксцентриситета
 r=32					!радиус вала
 Patm=0.1				!атмосферное давлениеи
 
@@ -35,19 +35,13 @@ allsel,all				!сброс выбора (выбор всех элементов)
 
 
 cmsel,s,mesto_pressure          !выбор области приложения давления (верхней поверхности лепестков соприк. с газом)
-cmsel,u,line_no_force           !выбор области где не должно прикладываться давление
+!cmsel,u,line_no_force           !выбор области где не должно прикладываться давление
 
 *GET,num_of_sel,NODE,0,count    !число узлов на выбранной поверхности
 
 *dim,number_of_node,array,num_of_sel    !объявление массива выбранных координат лепестка x
-*dim,coord_locx,array,num_of_sel        !объявление массива выбранных координат лепестка x
-*dim,coord_locy,array,num_of_sel        !объявление массива выбранных координат лепестка y
-*dim,coord_locz,array,num_of_sel        !объявление массива выбранных координат лепестка z
-*dim,coordxn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов X
-*dim,coordyn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов Y
+*dim,coord_loc,array,num_of_sel,4        !объявление массива выбранных координат лепестка x
 *dim,new_coordxn,array,num_of_sel,2 !объявление 2мерный массив с данными узлов/координат узлов X с эксцентриситетом
-*dim,coordzn,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов Z
-*dim,Smvmax,array,max_iter      !объявление массива невязок
 *dim,zazorP,array,num_of_sel        !объявление вспомогательного массива для невязок
 *dim,num_num,array,all_element      !объявление массива номер узла/номер узла
 *dim,after_Sharp,array,num_of_sel,2     !объявление 2мерный массив с данными узлов/координат узлов X
@@ -66,43 +60,16 @@ cmsel,u,line_no_force           !выбор области где не долж�
 
 !получение координат лепестка X для определённых узлов
 *do,i,1,num_of_sel
-	*get,coord_locx(i),node,number_of_node(i),loc,x
-*enddo
-
-!получение координат лепестка Z для определённых узлов
-*do,i,1,num_of_sel
-	*get,coord_locz(i),node,number_of_node(i),loc,z
-*enddo
-
-!получение координат Y лепестка для определённых узлов
-*do,i,1,num_of_sel
-	*get,coord_locy(i),node,number_of_node(i),loc,y
+	*get,coord_loc(i,1),node,number_of_node(i),loc,x
+	*get,coord_loc(i,2),node,number_of_node(i),loc,y
 		!перевод шкалы градусов из системы -180/180 в систему 0-360
-		*if,coord_locy(i),LT,0,then
-		coord_locy(i)=360+coord_locy(i)
+		*if,coord_loc(i,2),LT,0,then
+		coord_loc(i,2)=360+coord_loc(i,2)
 		*else
-		coord_locy(i)=coord_locy(i)
+		coord_loc(i,2)=coord_loc(i,2)
 		*endif
-*enddo
-
-
-
-!Создание 2 мерного массива номер узла/координатаX
-*do,i,1,num_of_sel
-	coordxn(i,1)=number_of_node(i)
-	coordxn(i,2)=coord_locx(i)
-*enddo
-
-!Создание 2 мерного массива номер узла/координатаY
-*do,i,1,num_of_sel
-	coordyn(i,1)=number_of_node(i)
-	coordyn(i,2)=coord_locy(i)
-*enddo
-
-!Создание 2 мерного массива номер узла/координатаZ
-*do,i,1,num_of_sel
-	coordzn(i,1)=number_of_node(i)
-	coordzn(i,2)=coord_locz(i)
+	*get,coord_loc(i,3),node,number_of_node(i),loc,z
+	coord_loc(i,4)=number_of_node(i)
 *enddo
 
 
@@ -142,31 +109,18 @@ delta_y=360/max_iter_y				!шаг между соседними узлами в 
 
 !Вычисление массива элементы по z -> угол элемента
 *do,i,1,num_of_sel
-	 nz=nint(coordzn(i,2)/razmer)	!номер элемента по оси z
+	 nz=nint(coord_loc(i,3)/razmer)	!номер элемента по оси z
        !цикл по выбора номера элемента по окружности
 	*do,k,1,max_iter_y
-		*if,coordyn(i,2),LT,one_line_vozr(k)+delta_y/3,and,coordyn(i,2),GT,one_line_vozr(k)-delta_y/3,then
+		*if,coord_loc(i,2),LT,one_line_vozr(k)+delta_y/3,and,coord_loc(i,2),GT,one_line_vozr(k)-delta_y/3,then
 	iy=k
 		*endif
 	*enddo
         mass_y(iy,nz+1)=i			!массив номер по z, номер по углу, номер элемента
 *enddo
 
-*do,i,1,num_of_sel
-	num_num(number_of_node(i))=i
-*enddo
 
 allsel,all
-
-
-!Создание 2 мерного массива номер узла/координата X с эксцентриситетом
-*do,i,1,num_of_sel
-	new_coordxn(i,1)=number_of_node(i)
-!	new_coordxn(i,2)=sqrt(r**2-rr*sin(coord_locy(i)+theta)**2)+rr*cos(coord_locy(i)+theta)
-	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
-*enddo
-allsel,all
-
 /prep7
 csys,1
 RSYS,11							!сделать цилиндрическую СК активной
@@ -192,7 +146,7 @@ nrotat,all
 *do,kk,1,max_iter_z
 	*do,i,1,gof
 		zzz=zzz+1
-		n,zzz,35,coord_locy(mass_y(exel(i),kk)),kk-1
+		n,zzz,35,coord_loc(mass_y(exel(i),kk),2),kk-1
 		d,zzz,ux,0
 		d,zzz,uy,0
 		d,zzz,uz,0
@@ -214,28 +168,15 @@ pribavka(1)=deltr*2
 *do,M,1,num_of_IEXC
 rr=rr+deltr
 
-!Создание 2 мерного массива номер узла/координата X с эксцентриситетом
-*do,i,1,num_of_sel
-	new_coordxn(i,1)=number_of_node(i)
-!	new_coordxn(i,2)=sqrt(r**2-rr*sin(coord_locy(i)+theta)**2)+rr*cos(coord_locy(i)+theta)
-	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
-*enddo
-
-!инициализация массива давлений
-*dim,p,array,num_of_sel,2			!объявление 2мерный массив с данными узлов/зазоров
-
-
-
-
 !ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
-*do,M,1,num_of_IEXC
-rr=rr+deltr
+!*do,M,1,num_of_IEXC
+!rr=rr+deltr
 
 !Создание 2 мерного массива номер узла/координата X с эксцентриситетом
 *do,i,1,num_of_sel
-	new_coordxn(i,1)=number_of_node(i)
+	new_coordxn(i,1)=coord_loc(i,4)
 !	new_coordxn(i,2)=sqrt(r**2-rr*sin(coord_locy(i)+theta)**2)+rr*cos(coord_locy(i)+theta)
-	new_coordxn(i,2)=r+rr*cos((coord_locy(i)+theta)*3.14/180)
+	new_coordxn(i,2)=r+rr*cos((coord_loc(i,4)+theta)*3.14/180)
 *enddo
 
 !инициализация массива давлений
@@ -261,12 +202,12 @@ RSYS,11					!сделать цилиндрическую СК активной
 
 !получение перемещений лепестка для определённых узлов
 *do,i,1,num_of_sel
-	*get,def1(i),node,number_of_node(i),U,x
+	*get,def1(i),node,coord_loc(i,4),U,x
 *enddo
 
 !Создание 2 мерного массива номер узла/перемещение
 *do,i,1,num_of_sel
-	deform(i,1)=number_of_node(i)
+	deform(i,1)=coord_loc(i,4)
 	deform(i,2)=def1(i)
 *enddo
 
@@ -277,13 +218,13 @@ RSYS,11					!сделать цилиндрическую СК активной
 
 !/sys, D:\bearing\BBEEAARRIINNGG\Charp_mesh_apdl.exe
 
-*vread,Pressure,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
-(' 'F13.10,)
+!*vread,Pressure,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
+!(' 'F13.10,)
 
-*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
-*vwrite,Pressure(1,1)
-(' 'F13.10,)
-*cfclos
+!*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
+!*vwrite,Pressure(1,1)
+!(' 'F13.10,)
+!*cfclos
 
 
 *enddo !Давление
