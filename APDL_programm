@@ -10,12 +10,12 @@
 rr=0.000				!радиус вектор эксцентриситета
 deltr=0.004				!шаг по эксцентриситету
 theta=0				!угол эксцентриситета, град
-num_of_IEXC=2				!число итераций изменения эксцентриситета
+num_of_IEXC=5				!число итераций изменения эксцентриситета
 r=32					!радиус вала
 Patm=0.1				!атмосферное давлениеи
 
 ALF=0.5				!коэффициент релаксации по давлению
-max_iter=1				!максимальное число итераций
+max_iter=5				!максимальное число итераций
 deltmax=0.0005			!максимальная невязка по зазору
 popravka=0.1				!поправка на идеализированную модель
 
@@ -35,7 +35,7 @@ allsel,all				!сброс выбора (выбор всех элементов)
 
 
 cmsel,s,mesto_pressure          !выбор области приложения давления (верхней поверхности лепестков соприк. с газом)
-!cmsel,u,line_no_force           !выбор области где не должно прикладываться давление
+cmsel,u,line_no_force           !выбор области где не должно прикладываться давление
 
 *GET,num_of_sel,NODE,0,count    !число узлов на выбранной поверхности
 
@@ -109,11 +109,12 @@ delta_y=360/max_iter_y				!шаг между соседними узлами в 
 
 !Вычисление массива элементы по z -> угол элемента
 *do,i,1,num_of_sel
-	 nz=nint(coord_loc(i,3)/razmer)	!номер элемента по оси z
+	!nz=nint(coord_loc(i,3)/razmer)	!номер элемента по оси z
        !цикл по выбора номера элемента по окружности
 	*do,k,1,max_iter_y
 		*if,coord_loc(i,2),LT,one_line_vozr(k)+delta_y/3,and,coord_loc(i,2),GT,one_line_vozr(k)-delta_y/3,then
 	iy=k
+	nz=nint(coord_loc(i,3)/razmer)
 		*endif
 	*enddo
         mass_y(iy,nz+1)=i			!массив номер по z, номер по углу, номер элемента
@@ -156,21 +157,26 @@ nrotat,all
 		type,100000
 		real,100000
 		nrotat,all
-		e,zzz,mass_y(exel(i),kk)
+		e,zzz,Coord_loc(mass_y(exel(i),kk),4)
 	*enddo
 *enddo
 
 *dim,pribavka,array,num_of_IEXC
+
 pribavka(1)=deltr*2
 
-
-!ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
+ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
 *do,M,1,num_of_IEXC
+*if,M,EQ,1,then
+rr=0
+*else
 rr=rr+deltr
+*endif
 
-!ЦИКЛ ПО ИЗМЕНЕНИЮ ЭКЦЕНТРИСИТЕТА
-!*do,M,1,num_of_IEXC
-!rr=rr+deltr
+*cfopen,'D:\bearing\BBEEAARRIINNGG\Start_parameters',txt
+*vwrite,rr,deltr,theta,r,ALF,dlinna
+(' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
+*cfclos
 
 !Создание 2 мерного массива номер узла/координата X с эксцентриситетом
 *do,i,1,num_of_sel
@@ -181,6 +187,9 @@ rr=rr+deltr
 
 !инициализация массива давлений
 *dim,p,array,num_of_sel,2			!объявление 2мерный массив с данными узлов/зазоров
+!инициализация массива сил
+*dim,Force,array,num_of_sel			!объявление массив с данными сил
+
 
 !ЦИКЛ ПО ИЗМЕНЕНИЮ ДАВЛЕНИЯ
 *do,k,1,max_iter
@@ -188,8 +197,8 @@ allsel,all
 /solu
 
 !приложение силы к выбранным узлам в повёрнутой СК
-*do,i,1,num_of_element
-    SFE,number_of_elem(i),,Pres,1,Press(i)
+*do,i,1,num_of_sel
+    F,coord_loc(i,4),FX,Force(i)*1000
 *enddo
 
 allsel,all
@@ -211,20 +220,20 @@ RSYS,11					!сделать цилиндрическую СК активной
 	deform(i,2)=def1(i)
 *enddo
 
-!*cfopen,'D:\bearing\BBEEAARRIINNGG\Number_node_coord1',txt
-!*vwrite,coordxn(1,1),coordxn(1,2),coordyn(1,2),coordzn(1,2),deform(1,2)
-!(' 'F15.0,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
-!*cfclos
+*cfopen,'D:\bearing\BBEEAARRIINNGG\Number_node_coord1',txt
+*vwrite,Coord_loc(1,4),Coord_loc(1,1),Coord_loc(1,2),Coord_loc(1,3),deform(1,2)
+(' 'F15.0,' 'G10.4,' 'G10.4,' 'G10.4,' 'G10.4,)
+*cfclos
 
-!/sys, D:\bearing\BBEEAARRIINNGG\Charp_mesh_apdl.exe
+/sys, D:\bearing\BBEEAARRIINNGG\Charp_mesh_apdl.exe
 
-!*vread,Pressure,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
-!(' 'F13.10,)
+*vread,Force,'D:\bearing\BBEEAARRIINNGG\Pressure_CSharp',txt,,
+(' 'F13.10,)
 
-!*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
-!*vwrite,Pressure(1,1)
-!(' 'F13.10,)
-!*cfclos
+*cfopen,'D:\bearing\BBEEAARRIINNGG\Test_CSharp',txt
+*vwrite,Force(1,1)
+(' 'F13.10,)
+*cfclos
 
 
 *enddo !Давление
