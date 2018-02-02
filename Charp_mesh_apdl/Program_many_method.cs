@@ -34,27 +34,26 @@ namespace Charp_mesh_apdl
             double Hmid = 0.00005;      //Характеристика зазора (отчего именно такая?)
 
             //////////////////////////////////////////////////////////////////////////////////////////////
-           
+
             /*Чтение из файла исходных величин*/
             FileStream file_start = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader_start = new StreamReader(file_start, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] Start_data = reader_start.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
+            reader_start.Close();
 
             double Shaft_radius_excentrisitet = Convert.ToDouble(Start_data[0], System.Globalization.CultureInfo.InvariantCulture);
             double Theta= Convert.ToDouble(Start_data[2], System.Globalization.CultureInfo.InvariantCulture);
             double Shaft_radius = Convert.ToDouble(Start_data[3], System.Globalization.CultureInfo.InvariantCulture); 
             double dlinna = Convert.ToDouble(Start_data[5], System.Globalization.CultureInfo.InvariantCulture);
+            
 
-            Console.WriteLine(Shaft_radius_excentrisitet);
-            Console.WriteLine(Theta);
-            Console.WriteLine(Shaft_radius);
-            Console.WriteLine(dlinna);
             
 
             /*Чтение из файла массивов*/
             FileStream file1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader = new StreamReader(file1, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] AllDataS = reader.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
+            reader.Close();
 
             int MaxNMass = AllDataS.Length; //максимальное число элементов массива
             int Num_strok = AllDataS.Length / 5; //Число строе в массиве
@@ -79,7 +78,7 @@ namespace Charp_mesh_apdl
             //Массив номеров узлов
             for (int i = 0; i < MaxNMass; i = i + 5)
             {
-                Node_Number[a] = Math.Round(Convert.ToDouble(AllDataS[i], System.Globalization.CultureInfo.InvariantCulture));
+                Node_Number[a] = Convert.ToDouble(AllDataS[i], System.Globalization.CultureInfo.InvariantCulture);
                 a++;
             }
             a = 0;
@@ -198,7 +197,7 @@ namespace Charp_mesh_apdl
             {
                 if (Math.Abs(All_coord_number[i, 2] - All_coord_number[i - 1, 2]) > Sravnenie_y) max_iter_y = a = a + 1;
             }
-            max_iter_y = max_iter_y - 5;
+            max_iter_y = 200;
             double delta_y = 360 / max_iter_y; //шаг между соседними узлами в одной окружности
 
 
@@ -358,14 +357,15 @@ namespace Charp_mesh_apdl
                             }
                         }
 
-                        FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
-                        StreamWriter writer_pressure = new StreamWriter(file_pressure, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
-                        for (int i = 0; i < Num_strok; i++)
-                        {
-                            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                            writer_pressure.WriteLine("{0:000.00000000000000}",Massiv_Pressure[i, 1]);
-                        }
-           
+            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+            StreamWriter writer_pressure = new StreamWriter(file_pressure, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
+              for (int i = 0; i < Num_strok; i++)
+                {
+                    System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+                    writer_pressure.WriteLine("{0:000.00000000000000}", Massiv_Pressure[i, 1]);
+                }
+            writer_pressure.Close();
+            
             /*
             FileStream test = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\TTesttt.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
             StreamWriter writer_test = new StreamWriter(test, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
