@@ -18,15 +18,15 @@ namespace Charp_mesh_apdl
             ////////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////////////////////
             /////////////////////Эти данные потом считать из файла////////////////////////////////////////
-            double Shaft_radius = 32;
-            double Shaft_radius_excentrisitet = 0;
-            double Theta = 0; //угол эксцентриситета 
+           // double Shaft_radius = 32;
+           // double Shaft_radius_excentrisitet = 0;
+           // double Theta = 0; //угол эксцентриситета 
             //double Delt_Excentrisitet = 0.004;
             double popravka = 0.1;
             //int max_iter = 1;             //максимальное число итераций
             //double deltmax = 0.0005;       //максимальная невязка по зазору
             //double razmer = 1;              //размер конечного элемента
-            double dlinna = 60;              //длина подшипника
+           // double dlinna = 60;              //длина подшипника
             int Ndel = 1;                  //разряжённость сетки давлений
             double Sravnenie_y = 0.2;      //сравнивается соотношение соседних узлов yб чтоб присвоить им 1 номер
             double Perepad = 0.1 - 0.01;   //Перепад высот в нахлёсте лепестка
@@ -34,17 +34,31 @@ namespace Charp_mesh_apdl
             double Hmid = 0.00005;      //Характеристика зазора (отчего именно такая?)
 
             //////////////////////////////////////////////////////////////////////////////////////////////
+           
+            /*Чтение из файла исходных величин*/
+            FileStream file_start = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
+            StreamReader reader_start = new StreamReader(file_start, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
+            string[] Start_data = reader_start.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
 
+            double Shaft_radius_excentrisitet = Convert.ToDouble(Start_data[0], System.Globalization.CultureInfo.InvariantCulture);
+            double Theta= Convert.ToDouble(Start_data[2], System.Globalization.CultureInfo.InvariantCulture);
+            double Shaft_radius = Convert.ToDouble(Start_data[3], System.Globalization.CultureInfo.InvariantCulture); 
+            double dlinna = Convert.ToDouble(Start_data[5], System.Globalization.CultureInfo.InvariantCulture);
 
+            Console.WriteLine(Shaft_radius_excentrisitet);
+            Console.WriteLine(Theta);
+            Console.WriteLine(Shaft_radius);
+            Console.WriteLine(dlinna);
+            
 
-            /*Чтение из файла*/
+            /*Чтение из файла массивов*/
             FileStream file1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader = new StreamReader(file1, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] AllDataS = reader.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
 
             int MaxNMass = AllDataS.Length; //максимальное число элементов массива
             int Num_strok = AllDataS.Length / 5; //Число строе в массиве
-
+            
 
             //
             //Создание нескольких массивов по столбцам
