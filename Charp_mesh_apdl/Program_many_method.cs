@@ -22,21 +22,21 @@ namespace Charp_mesh_apdl
            // double Shaft_radius_excentrisitet = 0;
            // double Theta = 0; //угол эксцентриситета 
             //double Delt_Excentrisitet = 0.004;
-            double popravka = 0.1;
+            double popravka = 0.0001;
             //int max_iter = 1;             //максимальное число итераций
             //double deltmax = 0.0005;       //максимальная невязка по зазору
             //double razmer = 1;              //размер конечного элемента
            // double dlinna = 60;              //длина подшипника
             int Ndel = 1;                  //разряжённость сетки давлений
-            double Sravnenie_y = 0.2;      //сравнивается соотношение соседних узлов yб чтоб присвоить им 1 номер
-            double Perepad = 0.1 - 0.01;   //Перепад высот в нахлёсте лепестка
+            double Sravnenie_y = 0.0002;      //сравнивается соотношение соседних узлов yб чтоб присвоить им 1 номер
+            double Perepad = 0.0001 - 0.00001;   //Перепад высот в нахлёсте лепестка
             int num_foil = 4;                //Число лепестков
             double Hmid = 0.00005;      //Характеристика зазора (отчего именно такая?)
 
             //////////////////////////////////////////////////////////////////////////////////////////////
 
             /*Чтение из файла исходных величин*/
-            FileStream file_start = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
+            FileStream file_start = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader_start = new StreamReader(file_start, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] Start_data = reader_start.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
             reader_start.Close();
@@ -50,7 +50,7 @@ namespace Charp_mesh_apdl
             
 
             /*Чтение из файла массивов*/
-            FileStream file1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
+            FileStream file1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader = new StreamReader(file1, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] AllDataS = reader.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
             reader.Close();
@@ -137,7 +137,7 @@ namespace Charp_mesh_apdl
                     if (j == 3) All_coord_number[i, j] = Coord_z[i];
                     if (j == 4) All_coord_number[i, j] = Deform[i];
                     if (j == 5) All_coord_number[i, j] = New_x[i]; //Эксцентриситет+x
-                    if (j == 6) All_coord_number[i, j] = Zazor[i]/1000/Hmid; //Зазоры
+                    if (j == 6) All_coord_number[i, j] = Zazor[i]/Hmid; //Зазоры
                 }
             }
 
@@ -215,21 +215,6 @@ namespace Charp_mesh_apdl
             int max_num_foil = num_i_of_zazor[2] - num_i_of_zazor[1];
             int num_y_of_foil = max_iter_y / num_foil;
 
-
-            //Преобразование из массива All_coord_number формата kх6
-            //В массив H[i, j], где i-массив углов y, j-массив длинны z
-            //Осуществляется по формуле k=max_iter_z*i+j
-            //Где max_iter_z - число элементов в массиве j для 1 угла y 
-            // for (int i = 0; i < ny; i++)
-            // {
-            //    for (int j = 0; j < nz; j++)
-            //    {
-            //        PXZ[i, j] = 1.0;
-            //        H[i, j] = All_coord_number[max_iter_z * i + j, 6];
-            //    }
-            // }
-
-
             //Преобразование из массива All_coord_number формата kх6
             //В массив зазоров H[i, j], где i-массив углов y, j-массив длинны z
             //Осуществляется по формуле k=max_iter_z*i+j
@@ -245,7 +230,7 @@ namespace Charp_mesh_apdl
                     for (int j = 0; j < max_iter_z; j++)
                     {
                         H[i, j, k - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k - 1], 6];
-                        PXZ[i, j, k - 1] = 1f;
+                        PXZ[i, j, k - 1] = 1;
                     }
                 }
             }
@@ -254,11 +239,11 @@ namespace Charp_mesh_apdl
             {
                 for (int j = 0; j < max_iter_z; j++)
                 {
-                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] < Num_strok) { H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 6]; PXZ[i, j, num_foil - 1] = 1f; }
+                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] < Num_strok) { H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 6]; PXZ[i, j, num_foil - 1] = 1; }
                     if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] > Num_strok)
                     {
                         int istart = 0;
-                        H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * istart + j), 6]; PXZ[i, j, num_foil - 1] = 1f;
+                        H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * istart + j), 6]; PXZ[i, j, num_foil - 1] = 1;
                         istart++;
                     }
                 }
@@ -327,7 +312,7 @@ namespace Charp_mesh_apdl
             //////////////////////////////////////////////////////////////
             //////////////////////////////////////////////////////////////
 
-          
+          /*
                         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////          
                         //Сортировка массива Massiv_Pressure методом расчёски по увеличению номеров узлов
                         double fakt_1 = 1.2473309; //Фактор уменьшения
@@ -356,13 +341,13 @@ namespace Charp_mesh_apdl
                                 i++;
                             }
                         }
-
-            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+*/
+            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
             StreamWriter writer_pressure = new StreamWriter(file_pressure, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
               for (int i = 0; i < Num_strok; i++)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure.WriteLine("{0:000.00000000000000}", Massiv_Pressure[i, 1]);
+                    writer_pressure.WriteLine("{0:#.##E+00}", (Massiv_Pressure[i, 1]-1)*100000);
                 }
             writer_pressure.Close();
             
@@ -384,7 +369,7 @@ namespace Charp_mesh_apdl
             DateTime time22 = DateTime.Now;
             Console.WriteLine("Время выполнения суммарное: {0}", (time22 - time11).Seconds);
 
-           // Console.ReadLine();
+           Console.ReadLine();
             /*
                         
 
@@ -420,8 +405,8 @@ namespace Charp_mesh_apdl
         {
             int ny = max_iter_y;                //число узлов по y - 4(по числу пересечений лепестков)?????????????????????????????????????
             int nz = max_iter_z;                //число узлов по z
-            double Shaft = Shaft_radius / 1000;        //Радиус вала (м)
-            double BLep = dlinna / 1000;      //Длинна подшипника
+            double Shaft = Shaft_radius;        //Радиус вала (м)
+            double BLep = dlinna;      //Длинна подшипника
             int z = num_of_foil;             //число лепестков
 
             double alfa = 0.8;            //Коэффициент релаксации
