@@ -123,7 +123,7 @@ namespace Charp_mesh_apdl
             for (int i = 0; i < Num_strok; i++)
             {
                 //Zazor[i] = Coord_x[i] + Deform[i] - New_x[i] - popravka;
-                Zazor[i] = (Coord_x[i] - New_x[i]) / Hmid;
+                Zazor[i] = (Coord_x[i]+ Deform[i] - New_x[i]-popravka) / Hmid;
             }
 
             //Создание итогового массива №, x, y, z, x+excentr, +
@@ -338,12 +338,12 @@ namespace Charp_mesh_apdl
                             }
                         }
 */
-            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Pressure_CSharp1.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
             StreamWriter writer_pressure = new StreamWriter(file_pressure, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
               for (int i = 0; i < Num_strok; i++)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure.WriteLine("{0:#.##E+00}", (Massiv_Pressure[i, 1]-1)*100000);
+                    writer_pressure.WriteLine("{0},{1}, {2:#.##E+00}", All_coord_number[i, 0], Massiv_Pressure[i, 0],(Massiv_Pressure[i, 1]-1)*100000);
                 }
 
 
@@ -373,7 +373,7 @@ namespace Charp_mesh_apdl
             DateTime time22 = DateTime.Now;
             Console.WriteLine("Время выполнения суммарное: {0}", (time22 - time11).Seconds);
 
-           Console.ReadLine();
+           //Console.ReadLine();
          }
         ///////////////////Подпрограмма 1//////////////////////
         public static double [,,] Pressure_solve (int max_iter_y, int max_iter_z, double Shaft_radius, double dlinna, int num_of_foil, int Ndel, double delta_y, double[,,] Hg, double [,,]PXZg, int k)
@@ -386,7 +386,7 @@ namespace Charp_mesh_apdl
 
             double alfa = 0.8;            //Коэффициент релаксации
             int Nit = 5;                //Число итераций прогона
-            int Nit1 = 1000;                     //число итераций расчёта давлений
+            int Nit1 = 800;                     //число итераций расчёта давлений
             int Pa = 100000;            //Атмосферное давление 1атм
             int Omega = 3000;           //Частота вращения 
            
