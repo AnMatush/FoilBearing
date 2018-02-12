@@ -388,7 +388,7 @@ namespace Charp_mesh_apdl
             for (int i = 0; i < Num_strok; i++)
             {
                 System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                writer_pressure.WriteLine("{0:E}", (Massiv_Pressure[i, 1] - 1) * 100000);
+                writer_pressure.WriteLine("{0:.00000E+00}", (Massiv_Pressure[i, 1] - 1) * 100000);
             }
             writer_pressure.Close();
        
