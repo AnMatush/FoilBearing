@@ -305,18 +305,16 @@ namespace Charp_mesh_apdl
 
             //сбор давлений для лепестков в один массив
             double[,] Massiv_Pressure = new double[Num_strok, 2];
-            for (int i = 0; i < num_foil; i++)
+           int jj = 0;
+           int kk = 0;
+            for (int i = 0; i < Num_strok; i++)
             {
-                int j = 0;
-                int k = 0;
-                {
-                    if (j == max_num_foil) { j = 0;k++; }
+               if ((i!=0) && (i% max_num_foil == 0)) { jj=0; kk++; }
                     //Massiv_Pressure[i, 0] = Num_node[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
                     Massiv_Pressure[i, 0]= All_coord_number[i, 0];
-                    Massiv_Pressure[i, 1] = Pressure[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
-                    j++;
-                }
-            }
+                    Massiv_Pressure[i, 1] = Pressure[(jj / max_iter_z), jj - ((jj / max_iter_z) * max_iter_z), kk];
+                jj++;
+             }
 
             //////////////////////////////////////////////////
            
