@@ -212,46 +212,54 @@ namespace Charp_mesh_apdl
             ////Создание нового массива, начало с первого лепестка
             ////без стыка  массива узлов одного из лепестков
             ////между концом и началом исходного массива 
+            double[,] bufer_strok = new double[num_i_of_zazor[0], 7];
             
-            
-            
-            
-            //Преобразование из массива All_coord_number формата kх6
-            //В массив зазоров H[i, j], где i-массив углов y, j-массив длинны z
-            //Осуществляется по формуле k=max_iter_z*i+j
-            //Где max_iter_z - число элементов в массиве j для 1 угла y 
-            //Создание массивов для первых лепестков
+            //Запись в буфер строк которые нужно перенести
+            for (int i=0;i< num_i_of_zazor[0]; i++)
+            {
+                for (int j = 0; j < 7; j++) { bufer_strok[i, j] = All_coord_number[i, j]; }
+            }
+            //Перемещение строк массива вниз
+            for (int i = 0; i <Num_strok- num_i_of_zazor[0]; i++)
+            {
+                for (int j = 0; j < 7; j++)
+                {
+                    All_coord_number[i, j] = All_coord_number[i + num_i_of_zazor[0], j];
+                 }
+            }
+            //Запись последних элементов в массив из буфера
+            a = 0;
+            for (int i = Num_strok - num_i_of_zazor[0]; i < Num_strok; i++)
+            {
+                for (int j = 0; j < 7; j++)
+                {
+                    All_coord_number[i, j] = bufer_strok[a, j];
+                 }
+                a++;
+            }
+
+                //Преобразование из массива All_coord_number формата kх6
+                //В массив зазоров H[i, j], где i-массив углов y, j-массив длинны z
+                //Осуществляется по формуле k=max_iter_z*i+j
+                //Где max_iter_z - число элементов в массиве j для 1 угла y 
+                //Создание массивов для первых лепестков
             double[,,] H = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив зазоров
             double[,,] PXZ = new double[num_y_of_foil, max_iter_z, num_foil];   //Массив давлений
-            double[,,] Num_node = new double[num_y_of_foil, max_iter_z, num_foil];
+            double[,,] Num_node = new double[num_y_of_foil, max_iter_z, num_foil]; //Массив номеров узлов
 
-            for (int k = 0; k < num_foil-1; k++)
+            for (int k = 0; k < num_foil; k++)
             {
                 for (int i = 0; i < num_y_of_foil; i++)
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        H[i, j, k] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k], 6];
+                        H[i, j, k] = All_coord_number[(max_iter_z * i + j), 6];
                         PXZ[i, j, k] = 1;
                         //Num_node[i, j, k]= All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k], 0];
                     }
                 }
             }
-            //Создание массива для последнего лепестка (переходящего через конец массива All_coord_number числа узлов )
-            for (int i = 0; i < num_y_of_foil; i++)
-            {
-                for (int j = 0; j < max_iter_z; j++)
-                {
-                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] < Num_strok) { H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 6]; PXZ[i, j, num_foil - 1] = 1; /*Num_node[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 0];*/ }
-                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] >= Num_strok)
-                    {
-                        int istart = 0;
-                        H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * istart + j), 6]; PXZ[i, j, num_foil - 1] = 1;
-                        Num_node[i, j, num_foil - 1] =All_coord_number[(max_iter_z * istart + j), 0];
-                        istart++;
-                    }
-                }
-            }
+          
             for (int i = 0; i < num_y_of_foil; i++) { Console.WriteLine("{0} ; {1} ; {2} ; {3} ", H[i, 20, 0], H[i, 20, 1], H[i, 20, 2], H[i, 20, 3]); }
 
             Console.WriteLine("Начало расчёта уравнений рейнольдса");
@@ -295,12 +303,12 @@ namespace Charp_mesh_apdl
             // для nz массива PPXZ i-(деление с округлением до целого вниз i-(i/ max_iter_z)*max_iter_z
             //Где max_iter_z - число элементов в массиве j для 1 угла y 
 
-            //сбор для лепестков кроме последнего
+            //сбор давлений для лепестков в один массив кроме последнего
             double[,] Massiv_Pressure = new double[Num_strok, 2];
-            for (int k = 0; k < num_foil - 1; k++)
+            for (int k = 0; k < num_foil; k++)
             {
                 int j = 0;
-                for (int i = num_i_of_zazor[k]; i < num_i_of_zazor[k + 1]; i++)
+                for (int i = 0; i < Num_strok; i++)
                 {
                     if (j == max_num_foil) { j = 0; }
                     //Massiv_Pressure[i, 0] = Num_node[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
@@ -310,24 +318,6 @@ namespace Charp_mesh_apdl
                 }
             }
 
-            //сбор для последнего лепестка
-            int num = num_foil - 1;
-            int count = 0;
-            int counter = 0;
-            for (int i = num_i_of_zazor[num]; i < Num_strok; i++)
-            {
-                //Massiv_Pressure[i, 0] = Num_node[count / max_iter_z, count - (count / max_iter_z) * max_iter_z, num];
-                Massiv_Pressure[i, 0] = All_coord_number[i, 0];
-                Massiv_Pressure[i, 1] = Pressure[count / max_iter_z, count - (count / max_iter_z) * max_iter_z, num];
-                counter=count++;
-             }
-            for (int i = 0; i < num_i_of_zazor[0]; i++)
-            {
-                //Massiv_Pressure[i, 0] = Num_node[counter / max_iter_z, counter - (counter / max_iter_z) * max_iter_z, num];
-                Massiv_Pressure[i, 0] = All_coord_number[i, 0];
-                Massiv_Pressure[i, 1] = Pressure[counter / max_iter_z, counter - (counter / max_iter_z) * max_iter_z, num];
-                counter++;
-            }
             //////////////////////////////////////////////////
             /*
             ////////////Печать номеров узлов/////////////////
@@ -341,13 +331,13 @@ namespace Charp_mesh_apdl
             //////////////////////////////////////////////////
             */
             ///////////////////////////////////////////////////////////////Тестовая сортировка и вывод в файл после сборки
-            double[,,] HHH = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив зазоров
+            double[,,] HHH = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив давлений
             
                for (int i = 0; i < num_y_of_foil; i++)
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        HHH[i, j, 1] = Massiv_Pressure[(max_iter_z * i + j) + num_i_of_zazor[0], 1];
+                        HHH[i, j, 1] = Massiv_Pressure[(max_iter_z * i + j), 1];
                      }
                 }
             
