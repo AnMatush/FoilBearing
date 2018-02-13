@@ -122,8 +122,8 @@ namespace Charp_mesh_apdl
             //Массив Зазоров
             for (int i = 0; i < Num_strok; i++)
             {
-                Zazor[i] =( Coord_x[i] -New_x[i] - popravka)/Hmid;
-                //Zazor[i] = (Coord_x[i] + Deform[i] - New_x[i] - popravka) / Hmid;
+                //Zazor[i] =( Coord_x[i] -New_x[i] - popravka)/Hmid;
+                Zazor[i] = (Coord_x[i] + Deform[i] - New_x[i] - popravka) / Hmid;
             }
 
             //Создание итогового массива №, x, y, z, x+excentr, +
