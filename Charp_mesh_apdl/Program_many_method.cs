@@ -253,9 +253,9 @@ namespace Charp_mesh_apdl
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        H[i, j, k] = All_coord_number[max_iter_z * i + j+(max_num_foil*k), 6];
+                        H[i, j, k] = All_coord_number[(max_iter_z * i + j)+max_num_foil * k, 6];
                         PXZ[i, j, k] = 1;
-                        Num_node[i, j, k]= All_coord_number[max_iter_z * i + j+(max_num_foil * k), 0];
+                        Num_node[i, j, k]= All_coord_number[(max_iter_z * i + j)+max_num_foil * k, 0];
                     }
                 }
             }
@@ -305,12 +305,12 @@ namespace Charp_mesh_apdl
 
             //сбор давлений для лепестков в один массив
             double[,] Massiv_Pressure = new double[Num_strok, 2];
-            for (int k = 0; k < num_foil; k++)
+            for (int i = 0; i < num_foil; i++)
             {
                 int j = 0;
-                for (int i = 0; i < Num_strok; i++)
+                int k = 0;
                 {
-                    if (j == max_num_foil) { j = 0; }
+                    if (j == max_num_foil) { j = 0;k++; }
                     //Massiv_Pressure[i, 0] = Num_node[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
                     Massiv_Pressure[i, 0]= All_coord_number[i, 0];
                     Massiv_Pressure[i, 1] = Pressure[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
@@ -337,7 +337,7 @@ namespace Charp_mesh_apdl
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        HHH[i, j, 0] = Massiv_Pressure[(max_iter_z * i + j+(max_num_foil * 0)), 1];
+                        HHH[i, j, 0] = Massiv_Pressure[((max_iter_z * i + j)+max_num_foil * 0), 1];
                      }
                 }
             
