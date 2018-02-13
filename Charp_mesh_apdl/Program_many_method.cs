@@ -209,6 +209,13 @@ namespace Charp_mesh_apdl
             int max_num_foil = num_i_of_zazor[2] - num_i_of_zazor[1];
             int num_y_of_foil = max_iter_y / num_foil;
 
+            ////Создание нового массива, начало с первого лепестка
+            ////без стыка  массива узлов одного из лепестков
+            ////между концом и началом исходного массива 
+            
+            
+            
+            
             //Преобразование из массива All_coord_number формата kх6
             //В массив зазоров H[i, j], где i-массив углов y, j-массив длинны z
             //Осуществляется по формуле k=max_iter_z*i+j
@@ -216,15 +223,17 @@ namespace Charp_mesh_apdl
             //Создание массивов для первых лепестков
             double[,,] H = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив зазоров
             double[,,] PXZ = new double[num_y_of_foil, max_iter_z, num_foil];   //Массив давлений
+            double[,,] Num_node = new double[num_y_of_foil, max_iter_z, num_foil];
 
-            for (int k = 1; k < num_foil; k++)
+            for (int k = 0; k < num_foil-1; k++)
             {
                 for (int i = 0; i < num_y_of_foil; i++)
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        H[i, j, k - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k - 1], 6];
-                        PXZ[i, j, k - 1] = 1;
+                        H[i, j, k] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k], 6];
+                        PXZ[i, j, k] = 1;
+                        //Num_node[i, j, k]= All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k], 0];
                     }
                 }
             }
@@ -233,11 +242,12 @@ namespace Charp_mesh_apdl
             {
                 for (int j = 0; j < max_iter_z; j++)
                 {
-                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] < Num_strok) { H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 6]; PXZ[i, j, num_foil - 1] = 1; }
+                    if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] < Num_strok) { H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 6]; PXZ[i, j, num_foil - 1] = 1; /*Num_node[i, j, num_foil - 1] = All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[num_foil - 1], 0];*/ }
                     if ((max_iter_z * i + j) + num_i_of_zazor[num_foil - 1] >= Num_strok)
                     {
                         int istart = 0;
                         H[i, j, num_foil - 1] = All_coord_number[(max_iter_z * istart + j), 6]; PXZ[i, j, num_foil - 1] = 1;
+                        Num_node[i, j, num_foil - 1] =All_coord_number[(max_iter_z * istart + j), 0];
                         istart++;
                     }
                 }
@@ -293,31 +303,43 @@ namespace Charp_mesh_apdl
                 for (int i = num_i_of_zazor[k]; i < num_i_of_zazor[k + 1]; i++)
                 {
                     if (j == max_num_foil) { j = 0; }
-                    Massiv_Pressure[i, 0] = All_coord_number[i, 0];
+                    //Massiv_Pressure[i, 0] = Num_node[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
+                    Massiv_Pressure[i, 0]= All_coord_number[i, 0];
                     Massiv_Pressure[i, 1] = Pressure[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
                     j++;
                 }
-
             }
+
             //сбор для последнего лепестка
             int num = num_foil - 1;
             int count = 0;
+            int counter = 0;
             for (int i = num_i_of_zazor[num]; i < Num_strok; i++)
             {
+                //Massiv_Pressure[i, 0] = Num_node[count / max_iter_z, count - (count / max_iter_z) * max_iter_z, num];
                 Massiv_Pressure[i, 0] = All_coord_number[i, 0];
                 Massiv_Pressure[i, 1] = Pressure[count / max_iter_z, count - (count / max_iter_z) * max_iter_z, num];
-                count++;
-            }
-
-            for (int i = 0; i < num_i_of_zazor[num]; i++)
+                counter=count++;
+             }
+            for (int i = 0; i < num_i_of_zazor[0]; i++)
             {
-                if (count == max_num_foil) { count = 0; }
+                //Massiv_Pressure[i, 0] = Num_node[counter / max_iter_z, counter - (counter / max_iter_z) * max_iter_z, num];
                 Massiv_Pressure[i, 0] = All_coord_number[i, 0];
-                Massiv_Pressure[i, 1] = Pressure[count / max_iter_z, count - (count / max_iter_z) * max_iter_z, num];
-                count++;
+                Massiv_Pressure[i, 1] = Pressure[counter / max_iter_z, counter - (counter / max_iter_z) * max_iter_z, num];
+                counter++;
             }
-
-
+            //////////////////////////////////////////////////
+            /*
+            ////////////Печать номеров узлов/////////////////
+            FileStream test_num = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\test_num.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+            StreamWriter writer_test_num = new StreamWriter(test_num, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
+            for (int i=0;i<Num_strok;i++)
+            {
+                writer_test_num.WriteLine(Massiv_Pressure[i, 0]);
+            }
+            writer_test_num.Close();
+            //////////////////////////////////////////////////
+            */
             ///////////////////////////////////////////////////////////////Тестовая сортировка и вывод в файл после сборки
             double[,,] HHH = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив зазоров
             
@@ -421,8 +443,8 @@ namespace Charp_mesh_apdl
             int z = num_of_foil;             //число лепестков
 
             double alfa = 0.8;            //Коэффициент релаксации
-            int Nit = 10;                //Число итераций прогона
-            int Nit1 = 2000;                     //число итераций расчёта давлений
+            int Nit = 5;                //Число итераций прогона
+            int Nit1 = 800;                     //число итераций расчёта давлений
             int Pa = 100000;            //Атмосферное давление 1атм
             int Omega = 3000;           //Частота вращения 
 
