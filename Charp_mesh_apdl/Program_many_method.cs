@@ -253,9 +253,9 @@ namespace Charp_mesh_apdl
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        H[i, j, k] = All_coord_number[(max_iter_z * i + j), 6];
+                        H[i, j, k] = All_coord_number[max_iter_z * i + j+(max_num_foil*k), 6];
                         PXZ[i, j, k] = 1;
-                        //Num_node[i, j, k]= All_coord_number[(max_iter_z * i + j) + num_i_of_zazor[k], 0];
+                        Num_node[i, j, k]= All_coord_number[max_iter_z * i + j+(max_num_foil * k), 0];
                     }
                 }
             }
@@ -285,7 +285,7 @@ namespace Charp_mesh_apdl
                 for (int j = 0; j < max_iter_z; j++)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure_1foil.Write(Pressure[i, j, 1]+" ");
+                    writer_pressure_1foil.Write(Pressure[i, j, 0]+" ");
                 }
                 writer_pressure_1foil.Write("\r\n");
             }
@@ -303,7 +303,7 @@ namespace Charp_mesh_apdl
             // для nz массива PPXZ i-(деление с округлением до целого вниз i-(i/ max_iter_z)*max_iter_z
             //Где max_iter_z - число элементов в массиве j для 1 угла y 
 
-            //сбор давлений для лепестков в один массив кроме последнего
+            //сбор давлений для лепестков в один массив
             double[,] Massiv_Pressure = new double[Num_strok, 2];
             for (int k = 0; k < num_foil; k++)
             {
@@ -319,7 +319,7 @@ namespace Charp_mesh_apdl
             }
 
             //////////////////////////////////////////////////
-            /*
+           
             ////////////Печать номеров узлов/////////////////
             FileStream test_num = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\test_num.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
             StreamWriter writer_test_num = new StreamWriter(test_num, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
@@ -329,7 +329,7 @@ namespace Charp_mesh_apdl
             }
             writer_test_num.Close();
             //////////////////////////////////////////////////
-            */
+           
             ///////////////////////////////////////////////////////////////Тестовая сортировка и вывод в файл после сборки
             double[,,] HHH = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив давлений
             
@@ -337,7 +337,7 @@ namespace Charp_mesh_apdl
                 {
                     for (int j = 0; j < max_iter_z; j++)
                     {
-                        HHH[i, j, 1] = Massiv_Pressure[(max_iter_z * i + j), 1];
+                        HHH[i, j, 0] = Massiv_Pressure[(max_iter_z * i + j+(max_num_foil * 0)), 1];
                      }
                 }
             
@@ -348,7 +348,7 @@ namespace Charp_mesh_apdl
                 for (int j = 0; j < max_iter_z; j++)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure_1foil1.Write(HHH[i, j, 1] + " ");
+                    writer_pressure_1foil1.Write(HHH[i, j, 0] + " ");
                 }
                 writer_pressure_1foil1.Write("\r\n");
             }
@@ -584,8 +584,6 @@ namespace Charp_mesh_apdl
             Itog[2, k] = minValueHg1;
             return Itog;
         }
-
-
 
     }
 }
