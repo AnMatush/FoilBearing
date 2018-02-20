@@ -22,11 +22,11 @@ namespace Charp_mesh_apdl
             // double Shaft_radius_excentrisitet = 0;
             // double Theta = 0; //угол эксцентриситета 
             //double Delt_Excentrisitet = 0.004;
-            double popravka = 0.0001;
             //int max_iter = 1;             //максимальное число итераций
             //double deltmax = 0.0005;       //максимальная невязка по зазору
             //double razmer = 1;              //размер конечного элемента
             // double dlinna = 60;              //длина подшипника
+            double popravka = 0.0001;
             int Ndel = 1;                  //разряжённость сетки давлений
             double Sravnenie_y = 0.0002;      //сравнивается соотношение соседних узлов yб чтоб присвоить им 1 номер
             double Perepad = 0.0001 - 0.00001;   //Перепад высот в нахлёсте лепестка
@@ -36,7 +36,7 @@ namespace Charp_mesh_apdl
             //////////////////////////////////////////////////////////////////////////////////////////////
 
             /*Чтение из файла исходных величин*/
-            FileStream file_start = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
+            FileStream file_start = new FileStream("E:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Start_parameters.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader_start = new StreamReader(file_start, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] Start_data = reader_start.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
             reader_start.Close();
@@ -50,7 +50,7 @@ namespace Charp_mesh_apdl
 
 
             /*Чтение из файла массивов*/
-            FileStream file1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
+            FileStream file1 = new FileStream("E:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Number_node_coord1.txt", FileMode.Open, FileAccess.Read); //открывает файл только на чтение
             StreamReader reader = new StreamReader(file1, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             string[] AllDataS = reader.ReadToEnd().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //создание одномерного массива символов 
             reader.Close();
@@ -275,28 +275,6 @@ namespace Charp_mesh_apdl
             }
             for (int i = 0; i < num_y_of_foil; i++) { Console.WriteLine("{0} ; {1} ; {2} ; {3} ", Pressure[i, 20, 0], Pressure[i, 20, 1], Pressure[i, 20, 2], Pressure[i, 20, 3]); }
 
-            
-            
-            //////////////////////////////////////////////////////Тестовый вывод давлений
-            FileStream file_pressure_1foil = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\writer_pressure_1foil.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
-            StreamWriter writer_pressure_1foil = new StreamWriter(file_pressure_1foil, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
-            for (int i = 0; i < num_y_of_foil; i++)
-            {
-                for (int j = 0; j < max_iter_z; j++)
-                {
-                    System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure_1foil.Write(Pressure[i, j, 0]+" ");
-                }
-                writer_pressure_1foil.Write("\r\n");
-            }
-            writer_pressure_1foil.Close();
-
-            /////////////////////////////////////////////////////////////
-
-
-
-
-
             //Преобразование из массива Pressure формата ny х nz
             //В массив Massiv_Pressure[i, 2], где i-число узлов, 1-номера узлов, 2-давления
             //Осуществляется по формуле для ny массива PPXZ деление с округлением до целого вниз i/max_iter_z
@@ -315,47 +293,6 @@ namespace Charp_mesh_apdl
                     Massiv_Pressure[i, 1] = Pressure[(jj / max_iter_z), jj - ((jj / max_iter_z) * max_iter_z), kk];
                 jj++;
              }
-
-            //////////////////////////////////////////////////
-           
-            ////////////Печать номеров узлов/////////////////
-            FileStream test_num = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\test_num.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
-            StreamWriter writer_test_num = new StreamWriter(test_num, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
-            for (int i=0;i<Num_strok;i++)
-            {
-                writer_test_num.WriteLine(Massiv_Pressure[i, 0]);
-            }
-            writer_test_num.Close();
-            //////////////////////////////////////////////////
-           
-            ///////////////////////////////////////////////////////////////Тестовая сортировка и вывод в файл после сборки
-            double[,,] HHH = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив давлений
-            
-               for (int i = 0; i < num_y_of_foil; i++)
-                {
-                    for (int j = 0; j < max_iter_z; j++)
-                    {
-                        HHH[i, j, 0] = Massiv_Pressure[((max_iter_z * i + j)+max_num_foil * 0), 1];
-                     }
-                }
-            
-            FileStream file_pressure_1foil1 = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\writer_pressure_1foil1.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
-            StreamWriter writer_pressure_1foil1 = new StreamWriter(file_pressure_1foil1, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
-            for (int i = 0; i < num_y_of_foil; i++)
-            {
-                for (int j = 0; j < max_iter_z; j++)
-                {
-                    System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                    writer_pressure_1foil1.Write(HHH[i, j, 0] + " ");
-                }
-                writer_pressure_1foil1.Write("\r\n");
-            }
-            writer_pressure_1foil1.Close();
-
-
-            /////////////////////////////////////////////////////////////////////////////
-
-            // for (int i = num_i_of_zazor[2]; i < num_i_of_zazor[3]; i++) { Console.WriteLine(Massiv_Pressure[i, 1]); }
 
             //////////////////////////////////////////////////////////////
             ////////////////////Создание массива давлений для ANSYS//////
@@ -393,7 +330,7 @@ namespace Charp_mesh_apdl
                               }
                           }
   
-            FileStream file_pressure = new FileStream("D:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+            FileStream file_pressure = new FileStream("E:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Pressure_CSharp.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
             StreamWriter writer_pressure = new StreamWriter(file_pressure, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
             for (int i = 0; i < Num_strok; i++)
             {
@@ -412,9 +349,6 @@ namespace Charp_mesh_apdl
 
 
             Console.WriteLine(max_iter_y);
-            //Console.WriteLine(max_iter_z);
-            //Console.WriteLine(max_iter_x);
-            //for (int i=0; i< num_y_of_foil; i++) { Console.WriteLine(Pressure[i,20]); }
 
             DateTime time22 = DateTime.Now;
             Console.WriteLine("Время выполнения суммарное: {0}", (time22 - time11).Seconds);
@@ -434,7 +368,7 @@ namespace Charp_mesh_apdl
             int Nit = 5;                //Число итераций прогона
             int Nit1 = 800;                     //число итераций расчёта давлений
             int Pa = 100000;            //Атмосферное давление 1атм
-            int Omega = 3000;           //Частота вращения 
+            int Omega = 8000;           //Частота вращения 
 
             double Myu = 0.0000183;     //Вязкость
             double Cz = 120;            //Константа Сазерленда
