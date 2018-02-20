@@ -246,7 +246,7 @@ namespace Charp_mesh_apdl
             double[,,] H = new double[num_y_of_foil, max_iter_z, num_foil];     //Массив зазоров
             double[,,] PXZ = new double[num_y_of_foil, max_iter_z, num_foil];   //Массив давлений
             double[,,] Num_node = new double[num_y_of_foil, max_iter_z, num_foil]; //Массив номеров узлов
-
+       
             for (int k = 0; k < num_foil; k++)
             {
                 for (int i = 0; i < num_y_of_foil; i++)
@@ -285,21 +285,28 @@ namespace Charp_mesh_apdl
             double[,] Massiv_Pressure = new double[Num_strok, 2];
            int jj = 0;
            int kk = 0;
+           double Force_x = 0;
+           double Force_y = 0;
+
             for (int i = 0; i < Num_strok; i++)
             {
                if ((i!=0) && (i% max_num_foil == 0)) { jj=0; kk++; }
                     //Massiv_Pressure[i, 0] = Num_node[(j / max_iter_z), j - ((j / max_iter_z) * max_iter_z), k];
                     Massiv_Pressure[i, 0]= All_coord_number[i, 0];
                     Massiv_Pressure[i, 1] = Pressure[(jj / max_iter_z), jj - ((jj / max_iter_z) * max_iter_z), kk];
+                    Force_x = Force_x + Massiv_Pressure[i, 1] * Math.Sin(All_coord_number[i, 2]);
+                Force_y= Force_y+ Massiv_Pressure[i, 1] * Math.Cos(All_coord_number[i, 2]);
                 jj++;
              }
-
+            double Force_sum = Math.Sqrt(Math.Pow(Force_x, 2) + Math.Pow(Force_y, 2));
             //////////////////////////////////////////////////////////////
             ////////////////////Создание массива давлений для ANSYS//////
             ///////////////////И его вывод в файл////////////////////////
             //////////////////////////////////////////////////////////////
             //////////////////////////////////////////////////////////////
-
+            Console.WriteLine("X " + Force_x);
+            Console.WriteLine("Y " +Force_y);
+            Console.WriteLine("Sum of Force " + Force_y);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////          
             //Сортировка массива Massiv_Pressure методом расчёски по увеличению номеров узлов
@@ -355,6 +362,10 @@ namespace Charp_mesh_apdl
 
             //Console.ReadLine();
         }
+        
+        
+        
+        ////////////////////////////////////////////////////////
         ///////////////////Подпрограмма 1//////////////////////
         public static double[,,] Pressure_solve(int max_iter_y, int max_iter_z, double Shaft_radius, double dlinna, int num_of_foil, int Ndel, double delta_y, double[,,] Hg, double[,,] PXZg, int k)
         {
