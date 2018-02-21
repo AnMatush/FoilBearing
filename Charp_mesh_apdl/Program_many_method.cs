@@ -45,8 +45,8 @@ namespace Charp_mesh_apdl
             double Theta = Convert.ToDouble(Start_data[2], System.Globalization.CultureInfo.InvariantCulture);
             double Shaft_radius = Convert.ToDouble(Start_data[3], System.Globalization.CultureInfo.InvariantCulture);
             double dlinna = Convert.ToDouble(Start_data[5], System.Globalization.CultureInfo.InvariantCulture);
-
-
+            double max_iter= Convert.ToDouble(Start_data[6], System.Globalization.CultureInfo.InvariantCulture);
+            double omega= Convert.ToDouble(Start_data[7], System.Globalization.CultureInfo.InvariantCulture);
 
 
             /*Чтение из файла массивов*/
@@ -266,14 +266,27 @@ namespace Charp_mesh_apdl
             //Сбор и рассчёт массива давлений
             double[,,] Pressure = new double[num_y_of_foil, max_iter_z, num_foil];
             double[,] Parameter_zazor = new double[3, num_foil];
+            double min_zazor = 1e+6;
             for (int k = 0; k < num_foil; k++)
             {
                 Console.WriteLine("Решение для лепестка: " + (k + 1));
-                Pressure = Pressure_solve(num_y_of_foil, max_iter_z, Shaft_radius, dlinna, num_foil, Ndel, delta_y, H, PXZ, k);
+                Pressure = Pressure_solve(num_y_of_foil, max_iter_z, Shaft_radius, dlinna, num_foil, Ndel, delta_y, H, PXZ, k, max_iter,omega);
                 Parameter_zazor = MassiveMinimumParameters(H, k, Hmid, num_foil);//координиата i
+                if (Parameter_zazor[2, k] < min_zazor) { min_zazor = Parameter_zazor[2, k]; }
                 Console.WriteLine("Минимальный зазор для лепестка: {0}, Составляет: {1} микрон, координаты минимума: ny- {2}, nz- {3}", (k + 1), Parameter_zazor[2, k], Parameter_zazor[0, k], Parameter_zazor[1, k]);
             }
+
+            FileStream Min_zazor_file = new FileStream("E:\\bearing\\BBEEAARRIINNGG\\!Bearing\\Min_zazor.txt", FileMode.Create, FileAccess.Write); //открывает файл на запись
+            StreamWriter Min_zazor = new StreamWriter(Min_zazor_file, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
+                System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+                Min_zazor.WriteLine("{0:.00000E+00}", min_zazor);
+                Min_zazor.Close();
+
+
+
             for (int i = 0; i < num_y_of_foil; i++) { Console.WriteLine("{0} ; {1} ; {2} ; {3} ", Pressure[i, 20, 0], Pressure[i, 20, 1], Pressure[i, 20, 2], Pressure[i, 20, 3]); }
+
+
 
             //Преобразование из массива Pressure формата ny х nz
             //В массив Massiv_Pressure[i, 2], где i-число узлов, 1-номера узлов, 2-давления
@@ -306,7 +319,7 @@ namespace Charp_mesh_apdl
             //////////////////////////////////////////////////////////////
             Console.WriteLine("X " + Force_x);
             Console.WriteLine("Y " +Force_y);
-            Console.WriteLine("Sum of Force " + Force_y);
+            Console.WriteLine("Sum of Force " + Force_sum);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////          
             //Сортировка массива Massiv_Pressure методом расчёски по увеличению номеров узлов
@@ -367,7 +380,7 @@ namespace Charp_mesh_apdl
         
         ////////////////////////////////////////////////////////
         ///////////////////Подпрограмма 1//////////////////////
-        public static double[,,] Pressure_solve(int max_iter_y, int max_iter_z, double Shaft_radius, double dlinna, int num_of_foil, int Ndel, double delta_y, double[,,] Hg, double[,,] PXZg, int k)
+        public static double[,,] Pressure_solve(int max_iter_y, int max_iter_z, double Shaft_radius, double dlinna, int num_of_foil, int Ndel, double delta_y, double[,,] Hg, double[,,] PXZg, int k, double max_iter, double omega)
         {
             int ny = max_iter_y;                //число узлов по y - 4(по числу пересечений лепестков)?????????????????????????????????????
             int nz = max_iter_z;                //число узлов по z
@@ -376,10 +389,10 @@ namespace Charp_mesh_apdl
             int z = num_of_foil;             //число лепестков
 
             double alfa = 0.8;            //Коэффициент релаксации
-            int Nit = 5;                //Число итераций прогона
+            double Nit = max_iter;                //Число итераций прогона
             int Nit1 = 800;                     //число итераций расчёта давлений
             int Pa = 100000;            //Атмосферное давление 1атм
-            int Omega = 8000;           //Частота вращения 
+            double Omega = omega;           //Частота вращения 
 
             double Myu = 0.0000183;     //Вязкость
             double Cz = 120;            //Константа Сазерленда
@@ -405,6 +418,7 @@ namespace Charp_mesh_apdl
 
             for (int it = 1; it <= Nit; it++)
             {
+                Hg = Hg_sort(Hg, k, ny, nz, Nit, it);
                 PPXZ = ReynoldsUstanovlenie(dx, DZ, lamb, dtau, SIGMA, alfa, Nit1, ny, nz, Hg, PXZg, k, num_of_foil);
                 Console.WriteLine("прогон: " + it);
             }
@@ -527,6 +541,26 @@ namespace Charp_mesh_apdl
             Itog[2, k] = minValueHg1;
             return Itog;
         }
+        /////////////////////////////////////////////////////////////////////////////////
+        //////////////////////Подпрограмма деления элементов массива на определённое число////
+        //////////////////////Для лучшей релаксации//////////////////////////////////////////
+        static double[,,] Hg_sort (double[,,] Hg, int num_foil, int num_y_of_foil, int max_iter_z, double Nit, int it)
+        {
+            for (int k = 0; k < num_foil; k++)
+            {
+                for (int i = 0; i < num_y_of_foil; i++)
+                {
+                    for (int j = 0; j < max_iter_z; j++)
+                    {
+                        Hg[i, j, k] = Hg[i,j,k]/Nit*it;
+                    }
+                }
+            }
+            return Hg;
+        }
+
+
+
 
     }
 }
