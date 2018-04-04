@@ -559,8 +559,5 @@ namespace Charp_mesh_apdl
             return Hg;
         }
 
-
-
-
     }
 }
