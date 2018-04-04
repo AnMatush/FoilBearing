@@ -294,8 +294,6 @@ gplot
 
 *enddo !Эксцентриситет
 
-/post1
-/set,last
-plnsol,U,SUM,2
-/show,png
-gplot
+
+
+
