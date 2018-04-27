@@ -42,6 +42,7 @@ namespace Charp_mesh_apdl
             reader_start.Close();
 
             double Shaft_radius_excentrisitet = Convert.ToDouble(Start_data[0], System.Globalization.CultureInfo.InvariantCulture);
+            double deltar = Convert.ToDouble(Start_data[1], System.Globalization.CultureInfo.InvariantCulture);
             double Theta = Convert.ToDouble(Start_data[2], System.Globalization.CultureInfo.InvariantCulture);
             double Shaft_radius = Convert.ToDouble(Start_data[3], System.Globalization.CultureInfo.InvariantCulture);
             double dlinna = Convert.ToDouble(Start_data[5], System.Globalization.CultureInfo.InvariantCulture);
@@ -280,7 +281,8 @@ namespace Charp_mesh_apdl
             StreamWriter Min_zazor = new StreamWriter(Min_zazor_file, System.Text.Encoding.Default); // создаем «потоковый читатель» и связываем его с файловым потоком 
                 System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
                 Min_zazor.WriteLine("{0:.00000E+00}", min_zazor);
-                Min_zazor.Close();
+                Min_zazor.WriteLine("{0:.00000E+00}", deltar);
+            Min_zazor.Close();
 
 
 
@@ -358,15 +360,6 @@ namespace Charp_mesh_apdl
                 writer_pressure.WriteLine("{0:.00000E+00}", (Massiv_Pressure[i, 1] - 1) * 100000);
             }
             writer_pressure.Close();
-       
-                double defXX = 0;
-            for (int i = 0; i < Num_strok; i++)
-            {
-                if (All_coord_number[i, 0] == 4796) { defXX = All_coord_number[i, 1] + All_coord_number[i, 4]; }
-            }
-
-            Console.WriteLine("Деформации узла напротив эксцентриситета =" + defXX);
-
 
             Console.WriteLine(max_iter_y);
 
